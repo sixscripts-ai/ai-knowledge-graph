@@ -2,14 +2,7 @@
 import re
 from collections import defaultdict
 from src.knowledge_graph.llm import call_llm
-from src.knowledge_graph.prompts import (
-    ENTITY_RESOLUTION_SYSTEM_PROMPT, 
-    get_entity_resolution_user_prompt,
-    RELATIONSHIP_INFERENCE_SYSTEM_PROMPT,
-    get_relationship_inference_user_prompt,
-    WITHIN_COMMUNITY_INFERENCE_SYSTEM_PROMPT,
-    get_within_community_inference_user_prompt
-)
+from src.knowledge_graph.prompts import prompt_factory
 
 def limit_predicate_length(predicate, max_words=3):
     """
@@ -412,8 +405,8 @@ def _resolve_entities_with_llm(triples, config):
     
     # Prepare prompt for LLM
     entity_list = "\n".join(sorted(all_entities))
-    system_prompt = ENTITY_RESOLUTION_SYSTEM_PROMPT
-    user_prompt = get_entity_resolution_user_prompt(entity_list)
+    system_prompt = prompt_factory.get_prompt("entity_resolution_system")
+    user_prompt = prompt_factory.get_prompt("entity_resolution_user", entity_list)
     
     try:
         # LLM configuration
@@ -509,8 +502,10 @@ def _infer_relationships_with_llm(triples, communities, config):
             entities2 = ", ".join(rep2)
             
             # Create prompt for LLM
-            system_prompt = RELATIONSHIP_INFERENCE_SYSTEM_PROMPT
-            user_prompt = get_relationship_inference_user_prompt(entities1, entities2, triples_text)
+            system_prompt = prompt_factory.get_prompt("relationship_inference_system")
+            user_prompt = prompt_factory.get_prompt(
+                "relationship_inference_user", entities1, entities2, triples_text
+            )
             
             try:
                 # LLM configuration
@@ -623,8 +618,10 @@ def _infer_within_community_relationships(triples, communities, config):
         pairs_text = "\n".join([f"{a} and {b}" for a, b in disconnected_pairs])
         
         # Create prompt for LLM
-        system_prompt = WITHIN_COMMUNITY_INFERENCE_SYSTEM_PROMPT
-        user_prompt = get_within_community_inference_user_prompt(pairs_text, triples_text)
+        system_prompt = prompt_factory.get_prompt("within_community_system")
+        user_prompt = prompt_factory.get_prompt(
+            "within_community_user", pairs_text, triples_text
+        )
         
         try:
             # LLM configuration
