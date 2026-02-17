@@ -295,11 +295,20 @@ def main():
         return
 
     if args.chat:
-        from src.graph_rag.graph_retriever import GraphRAGRetriever
-        retriever = GraphRAGRetriever(store)
-        # Import and run the chat loop
-        from src.graph_rag.graph_retriever import main as chat_main
-        chat_main()
+        from src.graph_rag.rag_chat import RAGChat
+        chat = RAGChat()
+        chat.store = store  # Reuse already-loaded graph
+        # Load just the MLX model
+        print(f"\nLoading model: {chat.model_path}")
+        if chat.adapter_path:
+            print(f"  Adapter: {chat.adapter_path}")
+        from mlx_lm import load as mlx_load
+        chat._model, chat._tokenizer = mlx_load(
+            chat.model_path,
+            adapter_path=chat.adapter_path,
+        )
+        print("  Ready.\n")
+        chat.chat()
         return
 
     if args.finetune:
