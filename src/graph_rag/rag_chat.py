@@ -37,7 +37,7 @@ from src.graph_rag.logic_engine import TradeReasoner, TradeDecision
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_MODEL = str(_PROJECT_ROOT / "vex-3b-ict-v7")  # fused v7 model (no adapter needed)
+DEFAULT_MODEL = str(_PROJECT_ROOT / "vex-3b-ict-v8")  # fused v8 model (no adapter needed)
 DEFAULT_ADAPTER = None  # set to adapter path if using base + LoRA
 DEFAULT_MAX_TOKENS = 500
 DEFAULT_TEMP = 0.7
