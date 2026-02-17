@@ -7,3 +7,18 @@ lib/
 *.egg-info
 __pycache__
 venv/
+
+# Model artifacts
+*.gguf
+adapters/
+adapters-v1/
+vex-ict-fused/
+
+# Large data files
+ict_graph_checkpoint.json
+ict_graph_preview.json
+ict_graph_preview.html
+ict_knowledge_brain.html
+data/ict_knowledge_combined.txt
+train_v2.log
+training_output_v3/
