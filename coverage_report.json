@@ -1,0 +1,1116 @@
+{
+  "summary": {
+    "total_concepts": 183,
+    "trained": 24,
+    "coverage_pct": 13.1,
+    "gaps_total": 159,
+    "in_graph_not_trained": 159,
+    "not_in_graph": 0,
+    "tier1_count": 101,
+    "tier2_count": 37,
+    "tier3_count": 21
+  },
+  "tier1_gaps": [
+    {
+      "concept": "trendline_liquidity",
+      "category": "liquidity",
+      "score": 12,
+      "in_graph": true,
+      "triple_count": 25
+    },
+    {
+      "concept": "ob_fvg_retrace_entry",
+      "category": "trading_models",
+      "score": 12,
+      "in_graph": true,
+      "triple_count": 95
+    },
+    {
+      "concept": "buy_side_liquidity",
+      "category": "liquidity",
+      "score": 11,
+      "in_graph": true,
+      "triple_count": 11
+    },
+    {
+      "concept": "liquidity_distribution_profile",
+      "category": "liquidity",
+      "score": 11,
+      "in_graph": true,
+      "triple_count": 12
+    },
+    {
+      "concept": "distribution",
+      "category": "trading_models",
+      "score": 11,
+      "in_graph": true,
+      "triple_count": 11
+    },
+    {
+      "concept": "bearish_order_block",
+      "category": "price_action",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "sell_side_liquidity",
+      "category": "liquidity",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "internal_range_liquidity",
+      "category": "liquidity",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "equal_lows",
+      "category": "liquidity",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 20
+    },
+    {
+      "concept": "accumulation",
+      "category": "trading_models",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "turtle_soup",
+      "category": "trading_models",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "model_7_universal",
+      "category": "trading_models",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 96
+    },
+    {
+      "concept": "model_9_one_shot_one_kill",
+      "category": "trading_models",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 96
+    },
+    {
+      "concept": "stop_placement_rules",
+      "category": "risk_management",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 56
+    },
+    {
+      "concept": "false_order_block",
+      "category": "anti_patterns",
+      "score": 10,
+      "in_graph": true,
+      "triple_count": 29
+    },
+    {
+      "concept": "inversion_fair_value_gap",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "first_presented_fvg",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "bullish_order_block",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "reclaimed_order_block",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "balanced_price_range",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "volume_imbalance",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "liquidity_void",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "premium_zone",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "discount_zone",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "equilibrium",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "fibonacci_retracement",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "expansion_price_swing",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "immediate_rebalance",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "efficient_price_delivery",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "inefficient_price_delivery",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "sibi",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "bisi",
+      "category": "price_action",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "external_range_liquidity",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "low_resistance_liquidity_run",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "liquidity_sweep",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "draw_on_liquidity",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "run_on_liquidity",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "equal_highs",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "relative_equal_highs_lows",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "high_resistance_liquidity_zone",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "low_support_liquidity_zone",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "liquidity_exhaustion",
+      "category": "liquidity",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "swing_high",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "higher_high",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "higher_low",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "lower_high",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "support_and_resistance_inversion",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "reversal_sequence",
+      "category": "market_structure",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "turtle_soup_plus_one",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "unicorn_setup",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "a_plus_setup",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "cbdr_asia_sd_method",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "htf_sweep_ltf_entry",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "breaker_block_reversal",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "ict_liquidity_run_model",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "ict_displacement_model",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "london_open_manipulation_model",
+      "category": "trading_models",
+      "score": 9,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "london_killzone",
+      "category": "time_sessions",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 7
+    },
+    {
+      "concept": "london_close_killzone",
+      "category": "time_sessions",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "macro_times",
+      "category": "time_sessions",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 6
+    },
+    {
+      "concept": "london_open",
+      "category": "time_sessions",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 9
+    },
+    {
+      "concept": "tuesday_high_low",
+      "category": "time_sessions",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "model_12_scalping",
+      "category": "trading_models",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 9
+    },
+    {
+      "concept": "confluence",
+      "category": "institutional",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "max_three_trades_day",
+      "category": "risk_management",
+      "score": 8,
+      "in_graph": true,
+      "triple_count": 44
+    },
+    {
+      "concept": "propulsion_block",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "new_week_opening_gap",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 10
+    },
+    {
+      "concept": "new_day_opening_gap",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 10
+    },
+    {
+      "concept": "consequent_encroachment",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "mean_threshold",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "standard_deviation_projections",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "dealing_range",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "micro_dealing_ranges",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "settlement_levels",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "daily_range_expansion",
+      "category": "price_action",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "buy_side_delivery",
+      "category": "liquidity",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "sell_side_delivery",
+      "category": "liquidity",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "break_of_structure",
+      "category": "market_structure",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "swing_low",
+      "category": "market_structure",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "swing_failure_pattern",
+      "category": "market_structure",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "fractal_nature",
+      "category": "market_structure",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "fractals",
+      "category": "market_structure",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "new_york_am_killzone",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "new_york_pm_killzone",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "asian_killzone",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "silver_bullet_window",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "london_lunch",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "dead_zone",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "sunday_opening_price",
+      "category": "time_sessions",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "ict_2022_model",
+      "category": "trading_models",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "ict_reversal_model",
+      "category": "trading_models",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "ict_continuation_model",
+      "category": "trading_models",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "ict_scalp_model",
+      "category": "trading_models",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "confluence_scoring",
+      "category": "institutional",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "reaccumulation",
+      "category": "institutional",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "redistribution",
+      "category": "institutional",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "second_stage_distribution",
+      "category": "institutional",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "position_size_formula",
+      "category": "risk_management",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 14
+    },
+    {
+      "concept": "r_percent_management",
+      "category": "risk_management",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "mitigated_fvg_one_time",
+      "category": "anti_patterns",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "fighting_htf",
+      "category": "anti_patterns",
+      "score": 7,
+      "in_graph": true,
+      "triple_count": 0
+    }
+  ],
+  "tier2_gaps": [
+    {
+      "concept": "rejection_block",
+      "category": "price_action",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 6
+    },
+    {
+      "concept": "rebalancing",
+      "category": "price_action",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 6
+    },
+    {
+      "concept": "algorithm_macros",
+      "category": "time_sessions",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "new_york_open",
+      "category": "time_sessions",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "ict_stop_hunt_model",
+      "category": "trading_models",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "economic_calendar_smokescreen",
+      "category": "institutional",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 17
+    },
+    {
+      "concept": "daily_bias",
+      "category": "institutional",
+      "score": 6,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "vacuum_block",
+      "category": "price_action",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "suspension_block",
+      "category": "price_action",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "opening_gap",
+      "category": "price_action",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "separation_principle",
+      "category": "price_action",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "stop_hunt",
+      "category": "liquidity",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "pairing_of_orders",
+      "category": "liquidity",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "change_of_character",
+      "category": "market_structure",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "lower_low",
+      "category": "market_structure",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "break_vs_stab",
+      "category": "market_structure",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "stop_run_vs_true_break",
+      "category": "market_structure",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "ipda_true_day",
+      "category": "time_sessions",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "two_pm_rule",
+      "category": "time_sessions",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 12
+    },
+    {
+      "concept": "quarterly_shifts",
+      "category": "time_sessions",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "model_8_25_pips",
+      "category": "trading_models",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "model_11_30_pips_intraday",
+      "category": "trading_models",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "day_trading_model",
+      "category": "trading_models",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "ipda",
+      "category": "institutional",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 4
+    },
+    {
+      "concept": "smart_money_reversal",
+      "category": "institutional",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "data_ranges_lookback",
+      "category": "institutional",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "supply_demand_distinction",
+      "category": "institutional",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 3
+    },
+    {
+      "concept": "pre_trade_scoring",
+      "category": "risk_management",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "adr_targeting",
+      "category": "risk_management",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "equity_curve_leveling",
+      "category": "risk_management",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 2
+    },
+    {
+      "concept": "news_gamble",
+      "category": "anti_patterns",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 0
+    },
+    {
+      "concept": "overtrading",
+      "category": "anti_patterns",
+      "score": 5,
+      "in_graph": true,
+      "triple_count": 1
+    },
+    {
+      "concept": "the_algorithm",
+      "category": "institutional",
+      "score": 4,
+      "in_graph": true,
+      "triple_count": 8
+    },
+    {
+      "concept": "type_a_buy_day",
+      "category": "institutional",
+      "score": 4,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "type_b_sell_day",
+      "category": "institutional",
+      "score": 4,
+      "in_graph": true,
+      "triple_count": 5
+    },
+    {
+      "concept": "two_strike_rule",
+      "category": "risk_management",
+      "score": 4,
+      "in_graph": true,
+      "triple_count": 9
+    },
+    {
+      "concept": "psychology_monitoring",
+      "category": "risk_management",
+      "score": 4,
+      "in_graph": true,
+      "triple_count": 6
+    }
+  ],
+  "tier3_gaps": [
+    {
+      "concept": "cme_open",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "midnight_open",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "nine_thirty_open",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "ninety_minute_cycles",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "seasonal_tendencies",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "electronic_trading_hours",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "regular_trading_hours",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "session_analysis",
+      "category": "time_sessions",
+      "score": 3
+    },
+    {
+      "concept": "market_maker_templating",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "weekly_profiles",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "change_in_state_of_delivery",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "position_cycling",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "volatility_injection",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "intermarket_analysis",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "interbank_order_flow",
+      "category": "institutional",
+      "score": 3
+    },
+    {
+      "concept": "min_two_to_one_rr",
+      "category": "risk_management",
+      "score": 3
+    },
+    {
+      "concept": "partial_exits",
+      "category": "risk_management",
+      "score": 3
+    },
+    {
+      "concept": "five_stage_trade_plan",
+      "category": "risk_management",
+      "score": 3
+    },
+    {
+      "concept": "chased_move",
+      "category": "anti_patterns",
+      "score": 3
+    },
+    {
+      "concept": "asia_breakout_trap",
+      "category": "anti_patterns",
+      "score": 3
+    },
+    {
+      "concept": "revenge_trade",
+      "category": "anti_patterns",
+      "score": 3
+    }
+  ],
+  "already_trained": [
+    "asian_range",
+    "breaker_block",
+    "cbdr",
+    "displacement",
+    "fair_value_gap",
+    "flash_wick",
+    "institutional_order_flow",
+    "judas_swing",
+    "killzones",
+    "liquidity",
+    "liquidity_pool",
+    "manipulation",
+    "market_maker_buy_model",
+    "market_maker_sell_model",
+    "market_structure",
+    "market_structure_shift",
+    "mitigation_block",
+    "optimal_trade_entry",
+    "order_block",
+    "pd_array_matrix",
+    "power_of_three",
+    "silver_bullet",
+    "smart_money",
+    "smt_divergence"
+  ]
+}

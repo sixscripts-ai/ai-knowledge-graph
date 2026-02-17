@@ -1,12 +1,12 @@
 {
-    "adapter_path": "adapters_v6",
+    "adapter_path": "adapters_v7",
     "batch_size": 2,
     "config": null,
-    "data": "finetune_data_merged",
+    "data": "finetune_data_final",
     "fine_tune_type": "lora",
     "grad_accumulation_steps": 4,
     "grad_checkpoint": true,
-    "iters": 600,
+    "iters": 800,
     "learning_rate": 1e-05,
     "lora_parameters": {
         "rank": 8,
@@ -17,7 +17,7 @@
         "name": "cosine_decay",
         "warmup": 50,
         "warmup_init": 1e-07,
-        "arguments": [1e-05, 600, 1e-06]
+        "arguments": [1e-05, 800, 1e-06]
     },
     "mask_prompt": true,
     "max_seq_length": 1024,

@@ -13,6 +13,9 @@ venv/
 *.safetensors
 adapters*/
 vex-ict-fused/
+vex-3b-ict/
+vex-3b-ict-v6/
+vex-3b-ict-v7/
 
 # Generated visualizations
 *.html
@@ -25,8 +28,13 @@ ict_graph_final.backup.json
 ict_graph_preview.json
 data/ict_knowledge_combined.txt
 train_v2.log
+training_run*.log
 training_output/
 training_output_v3/
+test_fused_*.py
+test_rag.py
+test_v7_rag.py
+preflight.py
 
 # OS
 Thumbs.db

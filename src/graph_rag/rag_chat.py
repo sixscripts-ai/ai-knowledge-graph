@@ -21,9 +21,11 @@ Usage:
 """
 
 import argparse
+import re
 import sys
 import time
 from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -31,11 +33,12 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.graph_rag.graph_store import ICTGraphStore, _normalize
+from src.graph_rag.logic_engine import TradeReasoner, TradeDecision
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_MODEL = "mlx-community/Llama-3.2-3B-Instruct-4bit"
-DEFAULT_ADAPTER = str(_PROJECT_ROOT / "adapters_v6")
+DEFAULT_MODEL = str(_PROJECT_ROOT / "vex-3b-ict-v7")  # fused v7 model (no adapter needed)
+DEFAULT_ADAPTER = None  # set to adapter path if using base + LoRA
 DEFAULT_MAX_TOKENS = 500
 DEFAULT_TEMP = 0.7
 
@@ -60,6 +63,31 @@ _ICT_ALIASES = {
     "ict": "ict",
     "killzone": "killzone",
     "killzones": "killzone",
+    # Gap-filler aliases (v4 concepts)
+    "ifvg": "inversion_fair_value_gap",
+    "bpr": "balanced_price_range",
+    "vi": "volume_imbalance",
+    "lv": "liquidity_void",
+    "nwog": "new_week_opening_gap",
+    "ndog": "new_day_opening_gap",
+    "ce": "consequent_encroachment",
+    "sibi": "sibi",
+    "bisi": "bisi",
+    "irb": "immediate_rebalance",
+    "sd": "standard_deviation",
+    "erl": "external_range_liquidity",
+    "irl": "internal_range_liquidity",
+    "dol": "draw_on_liquidity",
+    "eqh": "equal_highs",
+    "eql": "equal_lows",
+    "lrlr": "low_resistance_liquidity_run",
+    "hrlz": "high_resistance_liquidity_zone",
+    "sfp": "swing_failure_pattern",
+    "osok": "one_shot_one_kill",
+    "ipda": "ipda",
+    "smr": "smart_money_reversal",
+    "cisd": "change_in_state_of_delivery",
+    "adr": "average_daily_range",
 }
 
 
@@ -73,27 +101,36 @@ class RAGChat:
         max_tokens: int = DEFAULT_MAX_TOKENS,
         temp: float = DEFAULT_TEMP,
         max_context_triples: int = 40,
+        memory_window: int = 6,
     ):
         self.model_path = model_path
         self.adapter_path = adapter_path
         self.max_tokens = max_tokens
         self.temp = temp
         self.max_context_triples = max_context_triples
+        self.memory_window = memory_window  # how many past turns to keep
 
         self._model = None
         self._tokenizer = None
         self.store: Optional[ICTGraphStore] = None
+        self.reasoner: Optional[TradeReasoner] = None
+        self._history: list[dict] = []  # conversation memory
 
     # ── Loading ────────────────────────────────────────────────────────────
 
     def load(self) -> "RAGChat":
-        """Load the knowledge graph and MLX model."""
+        """Load the knowledge graph, logic engine, and MLX model."""
         # Graph
         print("Loading ICT Knowledge Graph...")
         self.store = ICTGraphStore()
         self.store.load_all()
         stats = self.store.stats()
         print(f"  {stats['nodes']} nodes, {stats['edges']} edges from {len(stats['sources'])} sources")
+
+        # Logic Engine
+        print("Loading Trade Reasoning Engine...")
+        self.reasoner = TradeReasoner(self.store)
+        print("  Ready.")
 
         # Model
         print(f"\nLoading model: {self.model_path}")
@@ -223,29 +260,113 @@ class RAGChat:
     # ── Prompt Construction ────────────────────────────────────────────────
 
     def build_prompt(self, question: str, graph_context: str) -> str:
-        """Build the Llama 3.2 Instruct chat prompt with RAG context."""
+        """Build the Llama 3.2 Instruct chat prompt with RAG context and memory."""
         system = (
             "You are VEX, an expert ICT (Inner Circle Trader) trading assistant.\n"
             "Use the knowledge graph facts below to answer accurately.\n"
             "Synthesize the information into a clear, practical explanation.\n"
             "Do NOT list raw graph data — explain concepts in your own words.\n"
+            "If a user asks you to evaluate a trade setup, analyze the confluences "
+            "and give a clear go/no-go recommendation with reasoning.\n"
             "\n"
             "### ICT Facts\n"
             f"{graph_context}"
         )
-        return (
+
+        prompt = (
             f"<|begin_of_text|>"
             f"<|start_header_id|>system<|end_header_id|>\n\n"
             f"{system}<|eot_id|>"
+        )
+
+        # Add conversation memory (last N turns)
+        for turn in self._history[-self.memory_window:]:
+            prompt += (
+                f"<|start_header_id|>{turn['role']}<|end_header_id|>\n\n"
+                f"{turn['content']}<|eot_id|>"
+            )
+
+        # Current question
+        prompt += (
             f"<|start_header_id|>user<|end_header_id|>\n\n"
             f"{question}<|eot_id|>"
             f"<|start_header_id|>assistant<|end_header_id|>\n\n"
         )
+        return prompt
+
+    # ── Trade Evaluation ───────────────────────────────────────────────────
+
+    def evaluate_setup(self, text: str) -> dict:
+        """Parse a natural-language trade setup description and evaluate it.
+
+        Extracts patterns, session, bias from the text and runs the logic engine.
+        Returns the TradeDecision plus a natural-language summary.
+        """
+        text_lower = text.lower()
+
+        # Extract patterns from text
+        pattern_keywords = {
+            "fvg": ["fvg", "fair value gap"],
+            "order_block": ["order block", "ob"],
+            "displacement": ["displacement", "displaced"],
+            "liquidity_sweep": ["liquidity sweep", "swept liquidity", "sweep",
+                                "stop hunt", "took out", "grabbed liquidity"],
+            "breaker_block": ["breaker block", "breaker"],
+            "smt_divergence": ["smt", "divergence"],
+            "turtle_soup": ["turtle soup"],
+        }
+        detected_patterns = []
+        for pattern, keywords in pattern_keywords.items():
+            if any(kw in text_lower for kw in keywords):
+                detected_patterns.append(pattern)
+
+        # Extract session
+        session = "ny_am"  # default
+        session_map = {
+            "london": ["london", "ldn"],
+            "ny_am": ["ny am", "new york am", "ny morning", "morning session"],
+            "ny_pm": ["ny pm", "afternoon", "ny afternoon"],
+            "asian": ["asian", "asia"],
+        }
+        for sess, keywords in session_map.items():
+            if any(kw in text_lower for kw in keywords):
+                session = sess
+                break
+
+        # Extract bias
+        htf_bias = "neutral"
+        if any(w in text_lower for w in ["bullish", "bull", "long", "buy"]):
+            htf_bias = "bullish"
+        elif any(w in text_lower for w in ["bearish", "bear", "short", "sell"]):
+            htf_bias = "bearish"
+
+        # Extract additional boolean signals
+        signals = {
+            "patterns": detected_patterns,
+            "htf_bias": htf_bias,
+            "session": session,
+            "displacement": "displacement" in text_lower or "displaced" in text_lower,
+            "in_killzone": any(kz in text_lower for kz in
+                              ["killzone", "kill zone", "london", "ny am", "ny pm"]),
+            "smt_divergence": "smt" in text_lower or "divergence" in text_lower,
+            "at_ote": "ote" in text_lower or "optimal trade entry" in text_lower,
+            "liquidity_swept": any(kw in text_lower for kw in
+                                   ["swept", "sweep", "stop hunt", "grabbed"]),
+            "htf_aligned": htf_bias != "neutral",
+        }
+
+        decision = self.reasoner.evaluate(signals)
+
+        return {
+            "decision": decision,
+            "signals_parsed": signals,
+            "summary": decision.summary(),
+        }
 
     # ── Generation ─────────────────────────────────────────────────────────
 
     def ask(self, question: str, verbose: bool = False) -> dict:
-        """Ask a question with graph-augmented context.
+        """Ask a question with graph-augmented context and conversation memory.
 
         Returns:
             {
@@ -254,17 +375,45 @@ class RAGChat:
                 "graph_context": str,
                 "elapsed": float,
                 "prompt_tokens": int,
+                "trade_eval": dict | None,  # present if trade evaluation detected
             }
         """
         t0 = time.time()
 
-        # Step 1: Extract concepts from the question
-        concepts = self.extract_concepts(question)
+        # Check if this is a trade evaluation question
+        trade_eval = None
+        eval_keywords = [
+            "evaluate", "is this a valid", "should i take", "rate this",
+            "go or no-go", "confluence", "score this", "is this setup",
+            "would you trade", "assess this",
+        ]
+        q_lower = question.lower()
+        is_eval = any(kw in q_lower for kw in eval_keywords)
+
+        if is_eval and self.reasoner:
+            trade_eval = self.evaluate_setup(question)
+
+        # Step 1: Extract concepts from the question (+ conversation context)
+        context_text = question
+        if self._history:
+            # Include last user message for context continuity
+            last_user = [t for t in self._history if t["role"] == "user"]
+            if last_user:
+                context_text = last_user[-1]["content"] + " " + question
+        concepts = self.extract_concepts(context_text)
 
         # Step 2: Build graph context from those concepts
         graph_context = self.build_graph_context(concepts)
 
-        # Step 3: Build the full prompt
+        # If we have a trade evaluation, prepend the logic engine results
+        if trade_eval:
+            eval_summary = trade_eval["summary"]
+            graph_context = (
+                f"### Trade Evaluation (Logic Engine)\n{eval_summary}\n\n"
+                f"### Knowledge Graph Facts\n{graph_context}"
+            )
+
+        # Step 3: Build the full prompt (with memory)
         prompt = self.build_prompt(question, graph_context)
 
         # Step 4: Generate with MLX
@@ -282,17 +431,32 @@ class RAGChat:
         )
 
         elapsed = time.time() - t0
+        answer_text = answer.strip()
+
+        # Store in conversation memory
+        self._history.append({"role": "user", "content": question})
+        self._history.append({"role": "assistant", "content": answer_text})
+
+        # Trim memory if beyond window
+        max_entries = self.memory_window * 2  # pairs of user/assistant
+        if len(self._history) > max_entries:
+            self._history = self._history[-max_entries:]
 
         # Estimate prompt tokens (rough: ~4 chars per token)
         prompt_tokens = len(prompt) // 4
 
         return {
-            "answer": answer.strip(),
+            "answer": answer_text,
             "concepts": concepts,
             "graph_context": graph_context,
             "elapsed": elapsed,
             "prompt_tokens": prompt_tokens,
+            "trade_eval": trade_eval,
         }
+
+    def clear_memory(self):
+        """Clear conversation history."""
+        self._history.clear()
 
     # ── Interactive Chat ───────────────────────────────────────────────────
 
@@ -300,15 +464,19 @@ class RAGChat:
         """Interactive chat loop with graph-augmented RAG."""
         print("=" * 60)
         print("  VEX — ICT GraphRAG Chat")
-        print("  Knowledge graph facts + fine-tuned ICT voice")
+        print("  Knowledge graph + logic engine + fine-tuned ICT voice")
         print("=" * 60)
         print()
         print("Commands:")
+        print("  /evaluate <setup>   — Evaluate a trade setup (go/no-go)")
         print("  /graph <concept>    — Browse graph data for a concept")
         print("  /concepts <text>    — Show extracted concepts")
         print("  /context <question> — Show graph context (no generation)")
         print("  /verbose            — Toggle verbose mode")
         print("  /stats              — Show graph statistics")
+        print("  /memory             — Show conversation history")
+        print("  /clear              — Clear conversation memory")
+        print("  /model <name>       — Explain an ICT model's requirements")
         print("  exit                — Quit")
         print()
 
@@ -329,6 +497,22 @@ class RAGChat:
                 if q == "/verbose":
                     verbose = not verbose
                     print(f"  Verbose mode: {'ON' if verbose else 'OFF'}")
+                    continue
+
+                if q == "/clear":
+                    self.clear_memory()
+                    print("  Conversation memory cleared.")
+                    continue
+
+                if q == "/memory":
+                    if not self._history:
+                        print("  No conversation history.")
+                    else:
+                        print(f"  {len(self._history)} messages in memory:")
+                        for i, msg in enumerate(self._history):
+                            role = msg["role"].upper()
+                            content = msg["content"][:80]
+                            print(f"    [{i+1}] {role}: {content}...")
                     continue
 
                 if q == "/stats":
@@ -370,14 +554,63 @@ class RAGChat:
                     print(f"\n  Graph Context:\n{context}\n")
                     continue
 
+                if q.startswith("/evaluate "):
+                    setup_text = q[10:].strip()
+                    if not setup_text:
+                        print("  Usage: /evaluate <describe your setup>")
+                        continue
+                    print("\n  Evaluating setup...")
+                    eval_result = self.evaluate_setup(setup_text)
+                    print(f"\n{eval_result['summary']}")
+                    print(f"\n  Parsed signals: {eval_result['signals_parsed']['patterns']}")
+                    print(f"  Session: {eval_result['signals_parsed']['session']}")
+                    print(f"  HTF Bias: {eval_result['signals_parsed']['htf_bias']}")
+                    print()
+                    continue
+
+                if q.startswith("/model "):
+                    model_name = q[7:].strip()
+                    info = self.reasoner.explain_model(model_name)
+                    if "error" in info:
+                        print(f"  {info['error']}")
+                        # List available models
+                        models = list(self.reasoner._model_blueprints.keys())
+                        if models:
+                            print(f"  Available models: {', '.join(models)}")
+                    else:
+                        print(f"\n  Model: {info['model']}")
+                        if info['description']:
+                            print(f"  Description: {info['description']}")
+                        print(f"  Requirements:")
+                        for req in info['required']:
+                            print(f"    - {req}")
+                        if info['time_windows']:
+                            print(f"  Time windows:")
+                            for tw in info['time_windows']:
+                                print(f"    {tw.get('start','')} - {tw.get('end','')}")
+                    print()
+                    continue
+
                 # ── RAG question ──
                 result = self.ask(q, verbose=verbose)
 
                 print(f"\nVEX: {result['answer']}")
+
+                # Show trade evaluation if detected
+                if result.get("trade_eval"):
+                    d = result["trade_eval"]["decision"]
+                    status = "✅ GO" if d.go_no_go else "❌ NO-GO"
+                    print(f"\n  Logic Engine: {status} (score: {d.score:.1f})")
+                    if d.recommendation:
+                        print(f"  Recommended model: {d.recommendation}")
+                    if d.red_flags:
+                        print(f"  Red flags: {', '.join(d.red_flags)}")
+
                 print(
                     f"\n  [{len(result['concepts'])} concepts | "
                     f"~{result['prompt_tokens']} prompt tokens | "
-                    f"{result['elapsed']:.1f}s]"
+                    f"{result['elapsed']:.1f}s | "
+                    f"{len(self._history)//2} turns in memory]"
                 )
                 if result["concepts"]:
                     print(f"  Concepts: {', '.join(result['concepts'][:8])}")

@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-Merge synthetic high-quality data with best graph-based examples.
+Merge ALL training data sources into finetune_data_final/.
 
 Combines:
-- 44 handcrafted synthetic examples (quality signal, paragraph format)
-- Best examples from finetune_data_v2 with 100+ char answers (breadth)
+- finetune_data_v3:     44 handcrafted synthetic examples (v6 training core)
+- finetune_data_v2:     Graph-based examples, filtered to 100+ char answers
+- finetune_data_v4:     94 gap-filler examples covering 90 new concepts
 
-This gives format quality + content diversity.
+Deduplicates on normalized question text.
+Output: finetune_data_final/ with 80/10/10 train/valid/test split.
 """
 import json
 import random
 from pathlib import Path
 
-SYNTHETIC_DIR = Path("finetune_data_v3")
-GRAPH_DIR = Path("finetune_data_v2")
-OUTPUT_DIR = Path("finetune_data_merged")
+SOURCES = [
+    ("finetune_data_v3", "Synthetic v3 (core quality)", None),
+    ("finetune_data_v2", "Graph-based (filtered)", 100),   # min answer length
+    ("finetune_data_v4", "Gap-filler v4 (90 concepts)", None),
+]
+OUTPUT_DIR = Path("finetune_data_final")
 
 
 def extract_assistant_text(messages):
@@ -24,40 +29,54 @@ def extract_assistant_text(messages):
     return ""
 
 
+def extract_user_text(messages):
+    for m in messages:
+        if m.get("role") == "user":
+            return m.get("content", "").strip().lower()
+    return ""
+
+
 def load_jsonl(path):
     examples = []
     with open(path) as f:
         for line in f:
-            examples.append(json.loads(line))
+            line = line.strip()
+            if line:
+                examples.append(json.loads(line))
     return examples
 
 
 def main():
-    # Load synthetic data (all of it)
-    synthetic = []
-    for split in ["train", "valid", "test"]:
-        p = SYNTHETIC_DIR / f"{split}.jsonl"
-        if p.exists():
-            synthetic.extend(load_jsonl(p))
+    all_examples = []
+    seen_questions = set()
+    dupes = 0
 
-    # Load graph-based data, keep only 100+ char answers
-    graph_good = []
-    graph_total = 0
-    for split in ["train", "valid", "test"]:
-        p = GRAPH_DIR / f"{split}.jsonl"
-        if p.exists():
+    for src_name, label, min_answer_len in SOURCES:
+        src_dir = Path(src_name)
+        source_count = 0
+        source_kept = 0
+        for split in ["train", "valid", "test"]:
+            p = src_dir / f"{split}.jsonl"
+            if not p.exists():
+                continue
             for ex in load_jsonl(p):
-                graph_total += 1
-                answer = extract_assistant_text(ex.get("messages", []))
-                if len(answer) >= 100:
-                    graph_good.append(ex)
+                source_count += 1
+                # Filter by answer length if threshold set
+                if min_answer_len:
+                    answer = extract_assistant_text(ex.get("messages", []))
+                    if len(answer) < min_answer_len:
+                        continue
+                # Deduplicate on question
+                q = extract_user_text(ex.get("messages", []))
+                if q in seen_questions:
+                    dupes += 1
+                    continue
+                seen_questions.add(q)
+                all_examples.append(ex)
+                source_kept += 1
+        print(f"  {label}: {source_kept} kept / {source_count} total")
 
-    print(f"Synthetic examples: {len(synthetic)}")
-    print(f"Graph examples (100+ chars): {len(graph_good)} / {graph_total}")
-
-    # Combine
-    all_examples = synthetic + graph_good
-    print(f"Combined: {len(all_examples)}")
+    print(f"\nTotal unique examples: {len(all_examples)} (skipped {dupes} dupes)")
 
     # Shuffle and split 80/10/10
     random.seed(42)
@@ -89,6 +108,8 @@ def main():
     print(f"  Max: {max(lengths)} chars")
     print(f"  Avg: {sum(lengths)/len(lengths):.0f} chars")
     print(f"  Median: {sorted(lengths)[len(lengths)//2]} chars")
+
+    print(f"\nDone — {len(all_examples)} total examples in {OUTPUT_DIR}/")
 
 
 if __name__ == "__main__":
