@@ -1,28 +1,34 @@
 [llm]
-model = "gemma3"
-#model = "claude-3.5-sonnet-v2"
-#model = "gpt4o"
-#model = "llama3-2-90b-instruct-v1:0"
-api_key = "sk-1234"
+# --- OPTION 1: OpenAI (Recommended for best results) ---
+# model = "gpt-4-turbo"
+# api_key = "sk-YOUR-OPENAI-API-KEY-HERE"
+# base_url = "https://api.openai.com/v1/chat/completions"
+
+# --- OPTION 2: Ollama (Free, Local) ---
+# Ensure you have Ollama running: `ollama serve`
+# And pull a model: `ollama pull mistral`
+model = "mistral"
+api_key = "ollama"  # Not used but required filler
 base_url = "http://localhost:11434/v1/chat/completions"
-#base_url = "http://localhost:4000/v1/chat/completions"
-max_tokens = 8192
-#max_tokens = 4096
-temperature = 0.8
+
+# --- OPTION 3: Other (Claude, etc via request proxy) ---
+# Check documentation for base_url
+
+max_tokens = 4096
+temperature = 0.1
 
 [chunking]
-chunk_size = 100  # Number of words per chunk
-overlap = 20      # Number of words to overlap between chunks
+chunk_size = 500  # Detailed extraction
+overlap = 50
 
 [standardization]
-enabled = true             # Whether to enable entity standardization
-use_llm_for_entities = true  # Whether to use LLM for additional entity resolution
+enabled = true
+use_llm_for_entities = true
 
 [inference]
-enabled = true             # Whether to enable relationship inference
-use_llm_for_inference = true  # Whether to use LLM for relationship inference
-apply_transitive = true    # Whether to apply transitive inference rules
+enabled = true
+use_llm_for_inference = true
+apply_transitive = true
 
 [visualization]
-edge_smooth = false  # Options: false, "dynamic", "continuous", "discrete", "diagonalCross", 
-                         # "straightCross", "horizontal", "vertical", "curvedCW", "curvedCCW", "cubicBezier": true = "continuous"
+edge_smooth = true

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Quick smoke test for logic engine after graph cleaning."""
 
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from src.graph_rag.graph_store import ICTGraphStore
 from src.graph_rag.logic_engine import TradeReasoner
 

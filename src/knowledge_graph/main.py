@@ -114,7 +114,36 @@ def process_text_in_chunks(config, full_text, debug=False):
     
     # Process each chunk
     all_results = []
+    start_chunk_idx = 0
+    
+    # --- RESUME LOGIC START ---
+    checkpoint_path = "ict_graph_checkpoint.json"
+    if os.path.exists(checkpoint_path):
+        try:
+            print(f"Found checkpoint file: {checkpoint_path}")
+            with open(checkpoint_path, 'r', encoding='utf-8') as f:
+                saved_results = json.load(f)
+            
+            if saved_results and isinstance(saved_results, list) and len(saved_results) > 0:
+                # Find the maximum chunk number in the saved results
+                max_chunk = 0
+                for item in saved_results:
+                    if "chunk" in item and isinstance(item["chunk"], int):
+                        max_chunk = max(max_chunk, item["chunk"])
+                
+                if max_chunk > 0:
+                    print(f"Changes found! Resuming from chunk {max_chunk + 1}...")
+                    all_results = saved_results
+                    start_chunk_idx = max_chunk # Chunks are 1-indexed in data, so max_chunk is the count done
+        except Exception as e:
+            print(f"Error loading checkpoint: {e}. Starting from scratch.")
+    # --- RESUME LOGIC END ---
+
     for i, chunk in enumerate(text_chunks):
+        # Skip chunks that are already processed
+        if i < start_chunk_idx:
+            continue
+
         print(f"Processing chunk {i+1}/{len(text_chunks)} ({len(chunk.split())} words)")
         
         # Process the chunk with LLM
@@ -129,6 +158,17 @@ def process_text_in_chunks(config, full_text, debug=False):
             all_results.extend(chunk_results)
         else:
             print(f"Warning: Failed to extract triples from chunk {i+1}")
+            
+        # --- CHECKPOINT SAFETY START ---
+        if (i + 1) % 10 == 0:
+            try:
+                checkpoint_path = "ict_graph_checkpoint.json"
+                with open(checkpoint_path, 'w', encoding='utf-8') as f:
+                    json.dump(all_results, f, indent=2)
+                print(f"  [SAFETY SAVE] Checkpoint saved to {checkpoint_path} ({len(all_results)} triples)")
+            except Exception as e:
+                print(f"  [WARNING] Could not save checkpoint: {e}")
+        # --- CHECKPOINT SAFETY END ---
     
     print(f"\nExtracted a total of {len(all_results)} triples from all chunks")
     

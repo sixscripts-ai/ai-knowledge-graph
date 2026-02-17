@@ -8,17 +8,28 @@ lib/
 __pycache__
 venv/
 
-# Model artifacts
+# Model artifacts — never commit these
 *.gguf
-adapters/
-adapters-v1/
+*.safetensors
+adapters*/
 vex-ict-fused/
 
-# Large data files
+# Generated visualizations
+*.html
+!docs/index.html
+!src/knowledge_graph/templates/*.html
+
+# Intermediate / temp data
 ict_graph_checkpoint.json
+ict_graph_final.backup.json
 ict_graph_preview.json
-ict_graph_preview.html
-ict_knowledge_brain.html
 data/ict_knowledge_combined.txt
 train_v2.log
+training_output/
 training_output_v3/
+
+# OS
+Thumbs.db
+
+# Lock files
+uv.lock

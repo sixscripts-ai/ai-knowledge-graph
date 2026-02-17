@@ -57,8 +57,8 @@ def visualize_knowledge_graph(triples, output_file="knowledge_graph.html", edge_
     
     # Add all subjects and objects as nodes
     for triple in triples:
-        subject = triple["subject"]
-        obj = triple["object"]
+        subject = str(triple["subject"])
+        obj = str(triple["object"])
         all_nodes.add(subject)
         all_nodes.add(obj)
         
@@ -73,7 +73,7 @@ def visualize_knowledge_graph(triples, output_file="knowledge_graph.html", edge_
     G_undirected = nx.Graph()
     
     for triple in triples:
-        G_undirected.add_edge(triple["subject"], triple["object"])
+        G_undirected.add_edge(str(triple["subject"]), str(triple["object"]))
     
     # Calculate centrality metrics
     centrality_metrics = _calculate_centrality_metrics(G_undirected, all_nodes)
@@ -103,8 +103,8 @@ def visualize_knowledge_graph(triples, output_file="knowledge_graph.html", edge_
     
     # Add edges with predicates as labels
     for triple in triples:
-        subject = triple["subject"]
-        obj = triple["object"]
+        subject = str(triple["subject"])
+        obj = str(triple["object"])
         
         # Determine if this is an inferred relationship
         is_inferred = triple.get("inferred", False)

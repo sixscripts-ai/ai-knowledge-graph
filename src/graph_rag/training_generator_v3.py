@@ -135,6 +135,12 @@ class TrainingDataGeneratorV3:
             ("Pair Knowledge", self.gen_pair_knowledge),
             ("Pre-trade Validation", self.gen_pretrade_validation),
             ("Multi-TF Alignment", self.gen_multi_tf),
+            ("Concept Cross-Refs", self.gen_concept_cross_refs),
+            ("What-If Scenarios", self.gen_what_if_scenarios),
+            ("Ontology Deep Dives", self.gen_ontology_deep_dives),
+            ("Multi-Concept Combos", self.gen_multi_concept_combos),
+            ("Confluence Permutations", self.gen_confluence_permutations),
+            ("Chart Identification", self.gen_chart_identification),
             ("Disambiguation", self.gen_disambiguation),
             ("Existing QA", self.gen_existing_qa),
         ]
@@ -2211,6 +2217,1280 @@ class TrainingDataGeneratorV3:
                 f"What does '{label}' mean in ICT multi-TF analysis?",
                 resp,
                 "multi_tf_alignment",
+            )
+            count += 1
+
+        return count
+
+    # ── 13a. Concept Cross-References ─────────────────────────────────────
+
+    def gen_concept_cross_refs(self) -> int:
+        """Generate 'How does X relate to Y?' for related concept pairs."""
+        count = 0
+        onto = self._load_ontology()
+        rels = self._load_concept_rels()
+
+        # Define meaningful concept pairs with rich explanations
+        pairs = [
+            (
+                "FVG",
+                "Displacement",
+                "Fair Value Gaps (FVGs) and displacement are inseparable in ICT methodology. "
+                "Displacement is the CAUSE — a large-bodied candle showing institutional conviction. "
+                "The FVG is the EFFECT — the imbalance left behind when price moves too fast. "
+                "Without displacement, a gap in price is just noise, not a valid FVG. "
+                "The sequence is always: displacement occurs → FVG forms → price returns to fill the gap. "
+                "When analyzing charts, first confirm displacement happened, THEN look for the FVG it created. "
+                "Trading an FVG without displacement is one of the most common mistakes in ICT — "
+                "it has roughly a 25% win rate compared to 60%+ for displacement-confirmed FVGs.",
+            ),
+            (
+                "Order Block",
+                "Liquidity Sweep",
+                "Order Blocks and liquidity sweeps have a strict causal relationship in ICT. "
+                "The liquidity sweep MUST come first — it provides the fuel (filled orders) that smart money needs. "
+                "The Order Block forms AFTER the sweep — it's the last candle of opposite color before displacement. "
+                "An OB without a prior sweep is just a candle with no institutional significance. "
+                "The sequence: liquidity pool identified → price sweeps it → displacement occurs → "
+                "the last candle before displacement is the OB → price returns to OB for entry. "
+                "Many traders identify 'order blocks' everywhere on the chart. "
+                "The filter that matters: was liquidity swept immediately before it formed?",
+            ),
+            (
+                "Premium",
+                "Discount",
+                "Premium and discount zones are two halves of the same framework in ICT. "
+                "Every dealing range has an equilibrium at the 50% level. "
+                "Above 50% is premium — smart money SELLS here (retail buys). "
+                "Below 50% is discount — smart money BUYS here (retail sells). "
+                "The rule is simple: only enter longs in discount, only enter shorts in premium. "
+                "The Optimal Trade Entry (OTE) zone at 62-79% retracement sits in the premium/discount sweet spot. "
+                "This framework prevents chasing: if you're buying in premium, you're buying from smart money. "
+                "If you're selling in discount, you're selling to smart money. Both are losing propositions.",
+            ),
+            (
+                "BOS",
+                "CHoCH",
+                "Break of Structure (BOS) and Change of Character (CHoCH) are both market structure events "
+                "but they signal opposite things. BOS = trend CONTINUATION — price breaks a swing point in the "
+                "direction of the existing trend, confirming it's still intact. CHoCH = potential REVERSAL — "
+                "the FIRST break against the prevailing trend, warning that momentum may be shifting. "
+                "BOS means 'keep trading this direction.' CHoCH means 'be cautious, a reversal may be forming.' "
+                "Critical distinction: CHoCH alone is NOT an entry signal. It's a warning. "
+                "You need CHoCH + liquidity sweep + displacement for a valid reversal entry. "
+                "After CHoCH, wait for confirmation via Market Structure Shift (MSS) before committing.",
+            ),
+            (
+                "ERL",
+                "IRL",
+                "External Range Liquidity (ERL) and Internal Range Liquidity (IRL) serve opposite roles in ICT. "
+                "IRL = your ENTRY points. These are FVGs, order blocks, and liquidity voids WITHIN the current range. "
+                "ERL = your TARGETS. These are equal highs/lows, old swing points, and liquidity pools at the range extremes. "
+                "The flow: price moves from IRL to ERL. You enter at IRL (PD arrays inside the range) "
+                "and target ERL (liquidity outside the range). "
+                "A simple trade plan: identify where ERL sits (your target), then find IRL between current price "
+                "and that target (your entry). Enter at IRL, target ERL. "
+                "This IRL→ERL framework is the backbone of every ICT trade plan.",
+            ),
+            (
+                "FVG",
+                "Order Block",
+                "FVGs and Order Blocks are both PD Arrays (Price Delivery Arrays) but they differ in structure and priority. "
+                "An FVG is a three-candle pattern with a gap between candle 1 and candle 3 wicks — measured from wicks. "
+                "An OB is the last candle of opposite color before displacement — entry at 50% of the candle body. "
+                "In terms of priority: FVG > OB. ICT teaches that the algorithm returns to 'THE VOID' (FVG) first. "
+                "When they overlap, you get the Unicorn setup — an OB with an FVG inside. This is the highest "
+                "probability setup in ICT because you have two institutional zones converging. "
+                "Use FVGs for precision entries and OBs for zone identification. Together they're stronger than either alone.",
+            ),
+            (
+                "Accumulation",
+                "Distribution",
+                "Accumulation and Distribution are the first and last phases of the AMD (Power of 3) cycle. "
+                "Accumulation: smart money quietly builds positions during a range-bound market (typically Asian session). "
+                "Equal highs and equal lows form, building liquidity on both sides. "
+                "Distribution: smart money aggressively moves price to their target after manipulation clears the way. "
+                "This is the 'real move' — the direction institutional order flow intended all along. "
+                "Between them is Manipulation — the false breakout that sweeps accumulated liquidity. "
+                "Key insight: never trade during Accumulation (it's choppy noise). Never chase Distribution (bad R:R). "
+                "Your edge is recognizing Accumulation, preparing during Manipulation, and entering early in Distribution.",
+            ),
+            (
+                "Judas Swing",
+                "AMD",
+                "The Judas Swing IS the Manipulation phase of the AMD cycle, applied specifically to session opens. "
+                "AMD = Accumulation (range/consolidation) → Manipulation (false breakout) → Distribution (real move). "
+                "The Judas Swing is what Manipulation looks like at London or NY open: "
+                "price makes a false move in the first 30-60 minutes, sweeping overnight or Asian liquidity, "
+                "then reverses in the true direction for the session. "
+                "The connection is direct: if you understand AMD, you understand why the Judas Swing exists — "
+                "smart money needs to grab liquidity (Manipulation) before delivering price to target (Distribution). "
+                "The Judas Swing is the tactical execution of the AMD concept within a single session timeframe.",
+            ),
+            (
+                "Liquidity",
+                "Support and Resistance",
+                "ICT methodology explicitly rejects the traditional concept of support and resistance. "
+                "In ICT, what retail traders call 'support' is actually sell-side liquidity (SSL) — "
+                "a pool of buy stop orders and stop losses sitting below equal lows and swing lows. "
+                "What they call 'resistance' is buy-side liquidity (BSL) — sell stops and buy orders above equal highs. "
+                "The critical difference: S/R implies price will bounce. ICT says these levels will be SWEPT. "
+                "Price is DRAWN to liquidity pools, not repelled by them. "
+                "When you see a 'support level that held 3 times,' ICT sees a growing pool of stop losses "
+                "that will eventually be harvested. This fundamental reframe — targets, not barriers — "
+                "is what separates ICT from traditional technical analysis.",
+            ),
+            (
+                "Silver Bullet",
+                "Killzone",
+                "The Silver Bullet model is embedded within specific killzones — it's a time-gated subset of killzone trading. "
+                "The AM Silver Bullet (10:00-11:00 ET) sits within the NY AM killzone (08:30-11:00 ET). "
+                "The PM Silver Bullet (14:00-15:00 ET) sits within the NY PM killzone (13:30-16:00 ET). "
+                "While the killzone defines the broad window for institutional activity, "
+                "the Silver Bullet narrows it to a precise 60-minute window where a specific pattern repeats: "
+                "an FVG forms in the direction of HTF bias after liquidity is swept. "
+                "You can trade the killzone without taking a Silver Bullet, but every Silver Bullet occurs within a killzone. "
+                "Think of killzones as the WHERE and Silver Bullet as the WHEN within that where.",
+            ),
+            (
+                "Displacement",
+                "Market Structure Shift",
+                "Displacement and Market Structure Shift (MSS) are related but distinct. "
+                "Displacement is a single candle event — a large-bodied candle showing institutional conviction. "
+                "MSS is a structural event — a confirmed break of market structure AFTER a liquidity sweep. "
+                "The relationship: displacement is often the MECHANISM that creates an MSS. "
+                "When smart money sweeps liquidity and then fires a displacement candle, that candle often "
+                "breaks through a swing high/low, creating the MSS. "
+                "Sequence: liquidity sweep → displacement candle → MSS (structure breaks) → FVG forms → entry. "
+                "Displacement without MSS = the move exists but structure hasn't shifted. "
+                "MSS without displacement = structure broke but without conviction. "
+                "You want BOTH for the highest probability setups.",
+            ),
+            (
+                "OTE",
+                "FVG",
+                "The Optimal Trade Entry (OTE) zone and Fair Value Gaps (FVGs) are independent concepts "
+                "that create exceptionally strong setups when they overlap. "
+                "OTE is the 62-79% Fibonacci retracement zone after a displacement move — the 'sweet spot' for entries. "
+                "An FVG is the imbalance left by rapid price movement. "
+                "When an FVG sits within the OTE zone, you have double confluence: "
+                "the Fibonacci level says 'this is the optimal retracement depth' and the FVG says "
+                "'the algorithm will return here to rebalance.' "
+                "This combination carries +2.5 in confluence scoring (1.5 for FVG + 1.0 for OTE). "
+                "After a displacement move, immediately check: is there an FVG in the 62-79% zone? "
+                "If yes, that's your entry point.",
+            ),
+            (
+                "Turtle Soup",
+                "Liquidity Sweep",
+                "Turtle Soup is essentially a NAMED PATTERN built entirely around liquidity sweeps. "
+                "Every Turtle Soup trade begins with a sweep of a clear liquidity pool (equal highs/lows, clean swing points). "
+                "What makes it 'Turtle Soup' specifically is the SPEED of the reversal — "
+                "the sweep happens, and price immediately reverses in the opposite direction. "
+                "A regular liquidity sweep might lead to any ICT model (Silver Bullet, 2022, Unicorn). "
+                "Turtle Soup is when the sweep IS the setup — the entry is on the reversal candle itself. "
+                "Stop goes beyond the sweep extreme. Target is opposite liquidity. "
+                "The name comes from the 'Turtle Traders' — whose breakout entries become the liquidity that gets swept.",
+            ),
+            (
+                "Session Open",
+                "Judas Swing",
+                "Session opens and Judas Swings are tightly coupled — the Judas Swing is defined by its timing "
+                "relative to session opens. It occurs in the first 30-60 minutes of London (2:00 AM ET) or NY (8:00 AM ET). "
+                "At session open, institutional algorithms become active and often create a false move first. "
+                "This false move (the Judas Swing) sweeps liquidity from the prior session's range "
+                "(overnight levels for London, pre-market for NY). "
+                "Not every session open produces a Judas Swing — but when one occurs, it's a powerful signal. "
+                "The key is to EXPECT the false move at session open rather than trading with it. "
+                "Wait for the sweep to complete, then look for displacement in the opposite direction. "
+                "The CME open at 8:20 AM ET is particularly significant for Judas Swings.",
+            ),
+            (
+                "Unicorn",
+                "Order Block",
+                "The Unicorn setup is a special case of Order Block — it's an OB with an FVG contained inside it. "
+                "Every Unicorn is an Order Block, but NOT every Order Block is a Unicorn. "
+                "What makes it 'Unicorn' is the rare combination: the last candle before displacement (OB) "
+                "has an FVG that forms within its price range. "
+                "This matters because you get dual institutional interest: "
+                "the OB represents the institutional origin point, and the FVG represents the algorithmic void. "
+                "Entry is inside the FVG portion of the OB (not just the OB midpoint). "
+                "Unicorns are rare — maybe 2-3 per week across major pairs — which is WHY they have the highest probability. "
+                "If you're seeing them daily, you're misidentifying regular OBs as Unicorns.",
+            ),
+        ]
+
+        for concept_a, concept_b, explanation in pairs:
+            # How does X relate to Y?
+            self._add(
+                f"How do {concept_a} and {concept_b} relate in ICT methodology?",
+                explanation,
+                "concept_cross_ref",
+            )
+            count += 1
+
+            # What's the difference between X and Y?
+            if any(
+                word in explanation.lower()
+                for word in [
+                    "differ",
+                    "opposite",
+                    "distinct",
+                    "contrast",
+                    "vs",
+                    "not the same",
+                ]
+            ):
+                self._add(
+                    f"What's the difference between {concept_a} and {concept_b} in ICT?",
+                    explanation,
+                    "concept_comparison",
+                )
+                count += 1
+
+        return count
+
+    # ── 13b. What-If Trade Scenarios ──────────────────────────────────────
+
+    def gen_what_if_scenarios(self) -> int:
+        """Generate 'what if X was different?' variations from real trades."""
+        count = 0
+        trades = self._load_trades(POSITIVE_DIR)
+
+        what_if_templates = [
+            {
+                "condition": "no displacement was present",
+                "answer_fn": lambda t: (
+                    f"Without displacement in this {t.get('market', {}).get('pair', 'Unknown')} trade, the setup would be INVALID.\n\n"
+                    f"Displacement is a non-negotiable requirement in ICT methodology. It indicates institutional "
+                    f"conviction — smart money committing to a direction. Without it:\n"
+                    f"• The FVG that formed is unreliable (just a gap, not an institutional imbalance)\n"
+                    f"• The Order Block is just a candle with no institutional significance\n"
+                    f"• There's no confirmation that the liquidity sweep was successful\n\n"
+                    f"Action: SKIP this trade. Wait for a displacement candle to appear. "
+                    f"If the move continues without displacement, it's either weak hands or a slow grind — "
+                    f"neither provides the edge that ICT methodology is designed to capture.\n\n"
+                    f"Confluence penalty: -1.5 (no_displacement), which alone can drop a good setup below the 5.0 minimum threshold."
+                ),
+            },
+            {
+                "condition": "the HTF bias was opposite to the trade direction",
+                "answer_fn": lambda t: (
+                    f"Taking this {t.get('market', {}).get('pair', 'Unknown')} trade against HTF bias would be a major rule violation.\n\n"
+                    f"The original trade aligned with the higher timeframe direction, which is why it worked. "
+                    f"Against HTF bias, even with all other factors intact:\n"
+                    f"• Confluence score takes a -2.0 penalty (against_htf_bias)\n"
+                    f"• Win rate drops significantly — counter-trend trades in ICT historically win <35%\n"
+                    f"• Your target (opposite liquidity) may not be reached because HTF flow pushes against you\n\n"
+                    f"The HTF determines WHERE price is going. The LTF determines where to GET IN. "
+                    f"You NEVER use the LTF to override the HTF direction.\n\n"
+                    f"Action: Do not enter. Period. Even if the LTF setup looks 'perfect,' "
+                    f"the HTF is the higher authority. Wait for the HTF and LTF to align."
+                ),
+            },
+            {
+                "condition": "liquidity had NOT been swept before entry",
+                "answer_fn": lambda t: (
+                    f"Without a prior liquidity sweep, this {t.get('market', {}).get('pair', 'Unknown')} setup lacks its fundamental catalyst.\n\n"
+                    f"Liquidity sweeps serve a critical function: they fill institutional orders. "
+                    f"Smart money needs the orders sitting at liquidity pools (stop losses, breakout orders) "
+                    f"to build their positions. Without the sweep:\n"
+                    f"• There's no 'fuel' for the directional move\n"
+                    f"• The PD Array you're entering at hasn't been activated by institutional order flow\n"
+                    f"• You're likely to get swept yourself when price eventually hunts that liquidity\n\n"
+                    f"Confluence penalty: -2.0 (no_liquidity_sweep) — the same weight as trading against HTF bias.\n\n"
+                    f"This is the classic 'stopped out right before the move' scenario. "
+                    f"Price sweeps YOUR stop (because you entered before the sweep), THEN moves in the direction you expected. "
+                    f"The fix: always wait for the sweep, then enter on the retracement."
+                ),
+            },
+            {
+                "condition": "this trade was taken outside of a killzone",
+                "answer_fn": lambda t: (
+                    f"Taking this {t.get('market', {}).get('pair', 'Unknown')} trade outside a killzone reduces its probability significantly.\n\n"
+                    f"Killzones exist because institutional order flow is concentrated in specific time windows. "
+                    f"Outside killzones, the market is dominated by retail flow and algorithms running noise patterns. "
+                    f"The same chart pattern during a killzone has 60%+ probability; outside, it drops to 40% or less.\n\n"
+                    f"Outside killzone effects:\n"
+                    f"• Confluence penalty: -1.0 (outside_killzone)\n"
+                    f"• Wider spreads in some pairs\n"
+                    f"• Less directional conviction — moves are choppy\n"
+                    f"• FVGs and OBs are less reliable because they weren't formed by institutional flow\n\n"
+                    f"The only exception: if you're trading the continuation of a killzone move that's still delivering, "
+                    f"the momentum may carry through. But entering a NEW setup outside the killzone is a volume problem — "
+                    f"there's simply not enough institutional flow to make the patterns reliable."
+                ),
+            },
+            {
+                "condition": "you entered at market instead of waiting for the FVG retracement",
+                "answer_fn": lambda t: (
+                    f"Entering at market instead of waiting for the FVG retracement in this {t.get('market', {}).get('pair', 'Unknown')} trade "
+                    f"would dramatically worsen your risk-to-reward ratio.\n\n"
+                    f"The FVG retracement is where you get the OPTIMAL entry — the price where institutional algorithms "
+                    f"return to rebalance the imbalance they created. Chasing at market means:\n"
+                    f"• Your entry is further from the optimal zone, widening your effective stop\n"
+                    f"• Your R:R ratio drops — potentially from 3:1 to 1:1 or worse\n"
+                    f"• You may be entering at the WORST price if the move pauses or briefly retraces\n\n"
+                    f"ICT's chasing_after_displacement anti-pattern applies directly here. "
+                    f"The fix: place a limit order at the FVG or OB level and let price come to you. "
+                    f"If it doesn't retrace? You missed the trade. That's fine — the next setup is always coming. "
+                    f"Better to miss a good trade than to enter a good trade at a bad price."
+                ),
+            },
+            {
+                "condition": "the session was London instead of NY",
+                "answer_fn": lambda t: (
+                    f"Shifting this {t.get('market', {}).get('pair', 'Unknown')} trade from NY to London session "
+                    f"changes the dynamics significantly.\n\n"
+                    f"London session characteristics:\n"
+                    f"• Opens at 2:00 AM ET — the first major session of the day\n"
+                    f"• Primary setups: Judas Swing, ICT 2022 Model (AMD cycle)\n"
+                    f"• Liquidity source: Asian session range (overnight highs/lows)\n"
+                    f"• The Judas Swing at London open sweeps Asian range liquidity\n\n"
+                    f"NY session characteristics:\n"
+                    f"• Opens at 8:00 AM ET — highest volume session\n"
+                    f"• Primary setups: Silver Bullet (10-11 AM), Turtle Soup\n"
+                    f"• May continue OR reverse London's move\n"
+                    f"• More macro events and news-driven volatility\n\n"
+                    f"The model selection may need to change: Silver Bullet is NY-specific (10-11 AM / 2-3 PM). "
+                    f"In London, you'd look for Judas Swing or AMD cycle instead. "
+                    f"The underlying ICT framework (sweeps, displacement, FVGs) works in both sessions, "
+                    f"but the specific models and timing patterns differ."
+                ),
+            },
+            {
+                "condition": "SMT divergence was present with the correlated pair",
+                "answer_fn": lambda t: (
+                    f"Adding SMT divergence to this {t.get('market', {}).get('pair', 'Unknown')} setup "
+                    f"would increase the confluence score by +1.5 and significantly improve the probability.\n\n"
+                    f"SMT (Smart Money Technique) divergence occurs when one pair makes a new high/low "
+                    f"but its correlated partner doesn't. The pair that FAILS to make the new extreme "
+                    f"reveals the true institutional direction.\n\n"
+                    f"With SMT divergence present:\n"
+                    f"• You have confirmation that the liquidity sweep was genuine (not a real breakout)\n"
+                    f"• Smart money is showing their hand through the divergence\n"
+                    f"• The reversal probability is significantly higher\n\n"
+                    f"Example: If EUR/USD sweeps buy-side liquidity (makes a new high) but GBP/USD doesn't, "
+                    f"the EUR/USD high is likely fake — smart money is selling, not buying. "
+                    f"This gives you the conviction to short EUR/USD with the sweep as your entry zone.\n\n"
+                    f"SMT at a liquidity sweep is one of the highest-probability signals in all of ICT methodology."
+                ),
+            },
+        ]
+
+        for trade in trades:
+            pair = trade.get("market", {}).get("pair", "Unknown")
+            session = trade.get("time", {}).get("session", "Unknown")
+
+            for template in what_if_templates:
+                q = f"What if {template['condition']} in the {pair} {session} trade?"
+                a = template["answer_fn"](trade)
+                self._add(q, a, "what_if_scenario")
+                count += 1
+
+        return count
+
+    # ── 13c. Ontology Deep Dives ──────────────────────────────────────────
+
+    def gen_ontology_deep_dives(self) -> int:
+        """Mine ontology sections not fully covered by other generators."""
+        count = 0
+        onto = self._load_ontology()
+
+        # ── Entry Models (only partially covered by model_deep_dives) ─────
+        entry_models = onto.get("entry_models", {})
+        for name, data in entry_models.items():
+            label = self._label(name)
+            sequence = data.get("sequence", [])
+            entry = data.get("entry", "")
+            stop = data.get("stop", "")
+            timing = data.get("timing", "")
+            trigger = data.get("trigger", "")
+            action = data.get("action", "")
+            rule = data.get("rule", "")
+            conditions = data.get("conditions", [])
+            confirmation = data.get("confirmation", "")
+            display_name = data.get("name", label)
+
+            parts = [f"The {display_name} entry model in ICT:\n\n"]
+
+            if sequence:
+                parts.append("Execution sequence:\n")
+                for i, step in enumerate(sequence, 1):
+                    parts.append(f"  {i}. {step.replace('_', ' ')}\n")
+                parts.append("\n")
+
+            if conditions:
+                parts.append("Required conditions:\n")
+                for cond in conditions:
+                    parts.append(f"  • {cond.replace('_', ' ')}\n")
+                parts.append("\n")
+
+            if entry:
+                parts.append(f"Entry point: {entry}\n")
+            if stop:
+                parts.append(f"Stop loss: {stop}\n")
+            if timing:
+                parts.append(f"Timing: {timing}\n")
+            if trigger:
+                parts.append(f"Trigger: {trigger}\n")
+            if action:
+                parts.append(f"Action: {action}\n")
+            if rule:
+                parts.append(f"Key rule: {rule}\n")
+            if confirmation:
+                parts.append(f"Confirmation: {confirmation}\n")
+
+            parts.append(
+                f"\nThis entry model is a specific execution pattern within the broader ICT framework. "
+                f"Each step must be confirmed in order before proceeding to the next."
+            )
+
+            self._add(
+                f"How do I execute the {display_name} entry model in ICT?",
+                "".join(parts),
+                "entry_model",
+            )
+            count += 1
+
+        # ── Validation Rules ──────────────────────────────────────────────
+        validation = onto.get("validation", {})
+        for name, data in validation.items():
+            if not isinstance(data, dict):
+                continue
+            label = self._label(name)
+            condition = data.get("condition", "")
+            meaning = data.get("meaning", "")
+
+            if condition and meaning:
+                resp = (
+                    f"ICT validation rule — {label}:\n\n"
+                    f"Condition: {condition}\n"
+                    f"Meaning: {meaning}\n\n"
+                    f"Validation rules are binary: either the condition is met or it isn't. "
+                    f"There is no 'maybe' or 'close enough.' This binary thinking protects you from "
+                    f"the gray-area rationalization that leads to bad trades. "
+                    f"If a re-entry is valid, you have permission to look for entries. "
+                    f"If invalid, the thesis is dead and you must wait for a new setup."
+                )
+                self._add(
+                    f"When is {label.lower()} in ICT trading?",
+                    resp,
+                    "validation_rule",
+                )
+                count += 1
+
+        # ── Trade Management Deep Dives ───────────────────────────────────
+        management = onto.get("trade_management", {})
+
+        # Risk models
+        risk_models = management.get("risk_models", {})
+        if risk_models:
+            parts = ["ICT risk management models:\n\n"]
+            for name, data in risk_models.items():
+                label = self._label(name)
+                desc = data.get("description", "")
+                typical = data.get("typical", "")
+                use_case = data.get("use_case", "")
+                parts.append(f"**{label}**: {desc}\n")
+                if typical:
+                    parts.append(f"  Typical range: {typical}\n")
+                if use_case:
+                    parts.append(f"  Best for: {use_case}\n")
+                parts.append("\n")
+            parts.append(
+                "Risk management is NON-NEGOTIABLE. The best setup in the world means nothing if "
+                "one loss wipes out ten wins. Decide your risk model BEFORE analyzing charts, "
+                "and never increase risk because a setup 'looks really good.'"
+            )
+            self._add(
+                "What risk models are used in ICT trading?",
+                "".join(parts),
+                "trade_mgmt",
+            )
+            count += 1
+
+        # Partial strategies
+        partials = management.get("partial_strategies", {})
+        if partials:
+            parts = ["ICT partial exit strategies:\n\n"]
+            for name, data in partials.items():
+                label = self._label(name)
+                desc = data.get("description", "")
+                example = data.get("example", "")
+                use_case = data.get("use_case", "")
+                parts.append(f"**{label}**: {desc}\n")
+                if example:
+                    parts.append(f"  Example: {example}\n")
+                if use_case:
+                    parts.append(f"  When to use: {use_case}\n")
+                parts.append("\n")
+            parts.append(
+                "Choosing between scale-out and all-or-nothing depends on your conviction level "
+                "and the setup quality. Scale-out reduces variance and locks in profits. "
+                "All-or-nothing maximizes the win when you're right but is more volatile. "
+                "Most ICT traders prefer scale-out: take partial at 2R, move stop to breakeven, "
+                "and let the runner target the next liquidity pool."
+            )
+            self._add(
+                "How should I manage partial exits in ICT?",
+                "".join(parts),
+                "trade_mgmt",
+            )
+            count += 1
+
+        # Stop management
+        stop_mgmt = management.get("stop_management", {})
+        if stop_mgmt:
+            parts = ["ICT stop loss management rules:\n\n"]
+            for stage, rule in stop_mgmt.items():
+                parts.append(f"**{self._label(stage)}**: {rule}\n")
+            parts.append(
+                "\nThe MOST important rule: NEVER widen your stop. A stop loss is a pre-commitment "
+                "to your maximum acceptable loss. Moving it further means you're hoping, not trading. "
+                "You can tighten it (move to breakeven or trail), but NEVER give price more room. "
+                "If your initial stop was at the right invalidation level, moving it means "
+                "you're giving up your edge to stay in a trade that's already proven your thesis wrong."
+            )
+            self._add(
+                "How do I manage stop losses in ICT trading?",
+                "".join(parts),
+                "trade_mgmt",
+            )
+            count += 1
+
+        # Outcome tags
+        outcome_tags = management.get("outcome_tags", {})
+        if outcome_tags:
+            parts = ["ICT trade outcome classification:\n\n"]
+            for tag, desc in outcome_tags.items():
+                emoji = "✅" if "win" in tag else "⚖️" if "breakeven" in tag else "❌"
+                parts.append(f"{emoji} **{self._label(tag)}**: {desc}\n")
+            parts.append(
+                "\nCategorizing every trade outcome is essential for your trading journal. "
+                "Over 100+ trades, patterns emerge: are you losing mostly to 'loss_mistake' (discipline issue) "
+                "or 'loss_structure' (analytical issue)? The fix is different for each. "
+                "Discipline issues need rule enforcement. Analytical issues need study and practice."
+            )
+            self._add(
+                "How should I categorize trade outcomes in ICT?",
+                "".join(parts),
+                "trade_mgmt",
+            )
+            count += 1
+
+        # ── Market Context ────────────────────────────────────────────────
+        market_context = onto.get("market_context", {})
+
+        trend_states = market_context.get("trend_state", {})
+        if trend_states:
+            parts = ["Market trend states in ICT:\n\n"]
+            for state, desc in trend_states.items():
+                parts.append(f"**{self._label(state)}**: {desc}\n")
+            parts.append(
+                "\nDetermining the trend state on the higher timeframe (Daily/4H) is STEP ONE of every ICT analysis. "
+                "Bullish = only look for longs. Bearish = only look for shorts. Ranging = no trade or fade extremes. "
+                "This simple filter eliminates roughly half of all potential (losing) trades immediately."
+            )
+            self._add(
+                "What are the market trend states in ICT?",
+                "".join(parts),
+                "market_context",
+            )
+            count += 1
+
+        # HTF bias
+        htf_bias_info = market_context.get("htf_bias", {})
+        if htf_bias_info:
+            desc = htf_bias_info.get("description", "")
+            values = htf_bias_info.get("values", [])
+            resp = (
+                f"HTF (Higher Timeframe) bias in ICT: {desc}\n\n"
+                f"Possible values: {', '.join(values)}\n\n"
+                f"How to determine HTF bias:\n"
+                f"1. Open the Daily chart — is price making higher highs/lows (bullish) or lower highs/lows (bearish)?\n"
+                f"2. Confirm on the 4H chart — does the 4H structure agree with the Daily?\n"
+                f"3. If both agree = strong bias. If they disagree = wait for alignment.\n\n"
+                f"The HTF bias is the single most important determination in ICT trading. "
+                f"Get it right and even mediocre entries can be profitable. "
+                f"Get it wrong and even perfect entries will fail. "
+                f"The HTF bias carries +2.0 in confluence scoring when aligned, and -2.0 penalty when opposed."
+            )
+            self._add("How do I determine HTF bias in ICT?", resp, "market_context")
+            count += 1
+
+        # Session times
+        sessions = market_context.get("session", {})
+        if sessions:
+            parts = ["ICT trading session times:\n\n"]
+            for sess, time_val in sessions.items():
+                label = self._label(sess)
+                parts.append(f"**{label}**: {time_val}\n")
+            parts.append(
+                "\nThese session times define the structure of the trading day. "
+                "The most important transition is the London open (2:00 AM EST) — this is where the 'real' day begins. "
+                "Asia builds the range, London breaks it (often with a Judas Swing), "
+                "and NY either continues or reverses. "
+                "Know these times cold. Set alerts. Your edge comes from being active during the right windows."
+            )
+            self._add(
+                "What are the ICT trading session times?",
+                "".join(parts),
+                "session_times",
+            )
+            count += 1
+
+        # ── Environment/Regime ────────────────────────────────────────────
+        env = onto.get("environment", {})
+
+        vol_regime = env.get("volatility_regime", {})
+        if vol_regime:
+            parts = ["ICT volatility regime adjustments:\n\n"]
+            for regime, data in vol_regime.items():
+                label = self._label(regime)
+                desc = data.get("description", "")
+                adj = data.get("adjustment", "")
+                parts.append(f"**{label} Volatility**: {desc}\n")
+                parts.append(f"  Adjustment: {adj}\n\n")
+            parts.append(
+                "Volatility regime awareness is what separates good ICT traders from great ones. "
+                "The same setup in high volatility needs wider stops and smaller size. "
+                "In low volatility, your standard targets may never be reached. "
+                "Adapt your playbook to the current regime instead of forcing the same approach in all conditions."
+            )
+            self._add(
+                "How should I adjust for different volatility regimes in ICT?",
+                "".join(parts),
+                "environment",
+            )
+            count += 1
+
+        # News context
+        news = env.get("news_context", {})
+        if news:
+            parts = ["ICT news event trading rules:\n\n"]
+            for impact, data in news.items():
+                label = self._label(impact)
+                events = data.get("events", [])
+                rule = data.get("rule", "")
+                opp = data.get("opportunity", "")
+                parts.append(f"**{label}**:\n")
+                if events:
+                    parts.append(f"  Events: {', '.join(events)}\n")
+                parts.append(f"  Rule: {rule}\n")
+                if opp:
+                    parts.append(f"  Opportunity: {opp}\n")
+                parts.append("\n")
+            parts.append(
+                "News events create volatile, unpredictable price action that violates normal ICT patterns. "
+                "The institutional algorithms that create clean FVGs, OBs, and sweeps are overwhelmed by "
+                "massive order flow during high-impact events. "
+                "The smart approach: stay out before, then analyze the structure that forms AFTER the event. "
+                "Post-news FVGs and sweeps can be very clean once the dust settles."
+            )
+            self._add(
+                "How should I handle news events in ICT trading?",
+                "".join(parts),
+                "environment",
+            )
+            count += 1
+
+        # Day types
+        day_types = env.get("day_types", {})
+        if day_types:
+            parts = ["ICT day type classification:\n\n"]
+            for dtype, data in day_types.items():
+                label = self._label(dtype)
+                chars = data.get("characteristics", "")
+                action = data.get("action", "")
+                parts.append(f"**{label}**:\n")
+                parts.append(f"  Characteristics: {chars}\n")
+                parts.append(f"  Action: {action}\n\n")
+            parts.append(
+                "Identifying the day type EARLY gives you a massive edge. "
+                "By mid-London, you should have a hypothesis: trend day? range day? reversal? "
+                "On trend days, hold positions and add on pullbacks. On range days, fade the extremes. "
+                "On reversal days, take profits quickly and don't assume continuation. "
+                "The worst mistake: treating a range day like a trend day (or vice versa)."
+            )
+            self._add(
+                "What are the different day types in ICT and how do I trade them?",
+                "".join(parts),
+                "environment",
+            )
+            count += 1
+
+        # ── Model Stages (AMD) expanded ───────────────────────────────────
+        stages = onto.get("model_stages", {})
+        if stages:
+            for name, data in stages.items():
+                label = self._label(name)
+                defn = data.get("definition", "")
+                appearance = data.get("appearance", "")
+                action = data.get("action", "")
+
+                resp = (
+                    f"The {label} phase in the ICT AMD (Power of 3) cycle:\n\n"
+                    f"Definition: {defn}\n"
+                    f"What it looks like on the chart: {appearance}\n"
+                    f"What to do: {action}\n\n"
+                    f"{'Accumulation is the WAITING phase. Most traders lose money here by trading the chop. The correct action is to mark the range boundaries and identify where liquidity is building. These levels will be swept in the next phase.' if 'accum' in name else ''}"
+                    f"{'Manipulation is the TRAP phase. This is where retail traders get caught — they buy the breakout (which is actually the false move) or sell the breakdown. Your job: recognize it as manipulation and PREPARE for entry in the opposite direction.' if 'manip' in name else ''}"
+                    f"{'Distribution is the PROFIT phase. This is the real move, delivering price from the manipulation zone to the target. Enter on retracement to FVG/OB after displacement confirms the direction. This is where your patience during accumulation and discipline during manipulation pays off.' if 'dist' in name else ''}"
+                )
+                self._add(
+                    f"What happens during the {label} phase in ICT's AMD cycle?",
+                    resp,
+                    "amd_phase",
+                )
+                count += 1
+
+        # ── Narrative Reasoning ───────────────────────────────────────────
+        narrative = onto.get("narrative_reasoning", {})
+        if narrative:
+            parts = [
+                "ICT Narrative Reasoning — the framework for trade justification:\n\n"
+            ]
+            for component, data in narrative.items():
+                label = self._label(component)
+                desc = data.get("description", "")
+                examples = data.get("examples", [])
+                parts.append(f"**{label}**: {desc}\n")
+                if examples:
+                    for ex in examples:
+                        parts.append(f"  • {ex}\n")
+                parts.append("\n")
+            parts.append(
+                "Every trade MUST answer all three questions with specific, concrete reasons. "
+                "If you can't articulate WHY HERE, WHY NOW, and WHAT WOULD KILL IT, "
+                "you don't have a trade — you have a guess. "
+                "This framework forces you to think like an institution: "
+                "what is the narrative that justifies putting capital at risk?"
+            )
+            self._add(
+                "How does narrative reasoning work in ICT methodology?",
+                "".join(parts),
+                "narrative_reasoning",
+            )
+            count += 1
+
+            # Individual components
+            for component, data in narrative.items():
+                label = self._label(component)
+                desc = data.get("description", "")
+                examples = data.get("examples", [])
+                if examples:
+                    resp = (
+                        f"The '{label}' component of ICT narrative reasoning asks: {desc}\n\n"
+                        f"Examples of good answers:\n"
+                        + "\n".join(f"  • {ex}" for ex in examples)
+                        + f"\n\nYour answer must be specific and verifiable — not 'it looks good' "
+                        f"but rather citing exact price levels, timeframes, and ICT concepts. "
+                        f"If your answer is vague, your thesis is vague, and your trade is a coin flip."
+                    )
+                    self._add(
+                        f"How do I answer '{label.lower()}' in my ICT trade plan?",
+                        resp,
+                        "narrative_reasoning",
+                    )
+                    count += 1
+
+        return count
+
+    # ── 13d. Multi-Concept Combinations ───────────────────────────────────
+
+    def gen_multi_concept_combos(self) -> int:
+        """Generate 'I see X+Y+Z, what model fits?' scenario questions."""
+        count = 0
+        rels = self._load_concept_rels()
+        models = rels.get("models", {})
+
+        # Define scenarios with confluence combinations
+        scenarios = [
+            {
+                "observations": [
+                    "An FVG formed at 10:15 AM ET",
+                    "HTF bias is bullish",
+                    "BSL was swept 20 minutes ago",
+                    "price is retracing to the FVG",
+                ],
+                "model": "Silver Bullet",
+                "reasoning": (
+                    "This is a textbook AM Silver Bullet setup.\n\n"
+                    "Why Silver Bullet:\n"
+                    "• Time window: 10:15 AM falls within the AM Silver Bullet window (10:00-11:00 ET) ✓\n"
+                    "• FVG direction: bullish FVG aligns with HTF bullish bias ✓\n"
+                    "• Liquidity: BSL was swept before the FVG formed ✓\n"
+                    "• Entry: price retracing to FVG = first tap entry ✓\n\n"
+                    "All four Silver Bullet requirements are met. Entry is at the first touch of the FVG. "
+                    "Stop below the FVG origin. Target opposite liquidity (SSL) or 15-20 pips.\n\n"
+                    "Confluence score: liquidity_swept (+2.5) + htf_bias_aligned (+2.0) + "
+                    "in_fvg (+1.5) + in_killzone (+1.5) = 7.5 — a Good Setup above the 7.0 threshold."
+                ),
+            },
+            {
+                "observations": [
+                    "Price is ranging during Asian session",
+                    "equal highs formed at 1.1850",
+                    "equal lows formed at 1.1820",
+                    "London opens in 30 minutes",
+                ],
+                "model": "ICT 2022 (AMD)",
+                "reasoning": (
+                    "This is a developing ICT 2022 Model (AMD cycle) setup.\n\n"
+                    "Current state: ACCUMULATION phase\n"
+                    "• Range-bound price action during Asia = accumulation ✓\n"
+                    "• Equal highs (1.1850) and equal lows (1.1820) = liquidity building on both sides ✓\n"
+                    "• London open approaching = manipulation phase likely incoming ✓\n\n"
+                    "What to expect:\n"
+                    "1. At London open (2:00 AM ET), watch for a Judas Swing — a false breakout of either the "
+                    "equal highs or equal lows\n"
+                    "2. The Judas Swing = MANIPULATION phase sweeping accumulated liquidity\n"
+                    "3. After the sweep, look for displacement in the opposite direction\n"
+                    "4. That displacement = DISTRIBUTION phase beginning — this is your entry\n\n"
+                    "Action NOW: Mark both liquidity levels. Set alerts. Do NOT enter yet. "
+                    "Wait for London to sweep one side, then enter with the real move."
+                ),
+            },
+            {
+                "observations": [
+                    "Order Block formed after BSL sweep",
+                    "FVG exists inside the OB",
+                    "HTF bias is bearish",
+                    "price approaching the OB zone",
+                ],
+                "model": "Unicorn",
+                "reasoning": (
+                    "This is a Unicorn setup — the highest probability trade in ICT methodology.\n\n"
+                    "Why Unicorn:\n"
+                    "• Order Block formed after a liquidity sweep (BSL swept) ✓\n"
+                    "• FVG is contained WITHIN the OB — this is the defining feature of a Unicorn ✓\n"
+                    "• HTF bias is bearish and this is a bearish OB = alignment ✓\n\n"
+                    "Entry: Inside the FVG portion of the OB (not just the OB midpoint).\n"
+                    "Stop: Above the entire OB (not just above the FVG).\n"
+                    "Target: Sell-side liquidity below.\n\n"
+                    "Unicorns are rare — maybe 2-3 per week across major pairs. Their rarity is their strength. "
+                    "When all three conditions align (valid OB + FVG inside + HTF alignment), "
+                    "the probability of success is the highest of any ICT setup.\n\n"
+                    "Confluence: liquidity_swept (+2.5) + htf_bias_aligned (+2.0) + unicorn_setup (+2.0) + "
+                    "in_fvg (+1.5) + at_order_block (+1.5) = 9.5 — A+ Setup!"
+                ),
+            },
+            {
+                "observations": [
+                    "Equal lows at 1.2000 swept by 25 pips",
+                    "immediate large bullish candle",
+                    "reversal happened within 3 candles",
+                    "clear swing point liquidity",
+                ],
+                "model": "Turtle Soup",
+                "reasoning": (
+                    "This is a classic Turtle Soup setup.\n\n"
+                    "Why Turtle Soup:\n"
+                    "• Clear liquidity pool: equal lows at 1.2000 ✓\n"
+                    "• Sweep: price went 25 pips through the level ✓ (typical 20-30 pip sweep)\n"
+                    "• Speed: immediate reversal with a large bullish candle ✓\n"
+                    "• Timing: reversal within 3 candles = fast enough for Turtle Soup ✓\n\n"
+                    "Entry: On the reversal candle or at the FVG it creates.\n"
+                    "Stop: Below the sweep extreme (the lowest point of the 25-pip extension).\n"
+                    "Target: Opposite liquidity — buy-side liquidity above.\n\n"
+                    "The name comes from the 'Turtle Traders' whose breakout buy-stop and sell-stop orders "
+                    "become the liquidity that gets swept. Turtle Soup is a pure counter-breakout play — "
+                    "the faster the reversal after the sweep, the better the trade."
+                ),
+            },
+            {
+                "observations": [
+                    "London just opened",
+                    "price spiked down 30 pips in first 20 minutes",
+                    "Asian high was swept by the spike",
+                    "HTF bias is bullish",
+                ],
+                "model": "Judas Swing",
+                "reasoning": (
+                    "This is a Judas Swing setup at London open.\n\n"
+                    "Why Judas Swing:\n"
+                    "• Timing: first 20 minutes of London open = within the Judas window (first 30-60 min) ✓\n"
+                    "• False move: price spiked DOWN but HTF bias is BULLISH = opposite to true direction ✓\n"
+                    "• Liquidity: Asian range was swept (spike through overnight levels) ✓\n"
+                    "• Wait: Now look for displacement UP (in the direction of HTF bullish bias)\n\n"
+                    "The Judas Swing IS the manipulation phase of AMD within the London session. "
+                    "It exists to trap traders who sell the Asian breakdown and grab their stop losses.\n\n"
+                    "Next steps:\n"
+                    "1. Wait for the spike to exhaust (look for wicking candles)\n"
+                    "2. Watch for a strong bullish displacement candle (2x average range)\n"
+                    "3. That displacement will create FVGs and OBs — enter on retracement to those levels\n"
+                    "4. Target: buy-side liquidity above, since HTF bias is bullish\n\n"
+                    "Key: do NOT buy the bottom of the Judas. Wait for displacement confirmation."
+                ),
+            },
+            {
+                "observations": [
+                    "HTF is bullish",
+                    "MTF shows BOS to the upside",
+                    "LTF shows pullback into FVG",
+                    "FVG is in the OTE zone (70% fib)",
+                ],
+                "model": "Multi-TF Alignment with OTE",
+                "reasoning": (
+                    "This is a textbook multi-timeframe aligned entry with OTE confluence.\n\n"
+                    "Analysis:\n"
+                    "• HTF (Daily/4H): Bullish — determines direction ✓\n"
+                    "• MTF (1H/15M): BOS (Break of Structure) upside — confirms trend continuation ✓\n"
+                    "• LTF (5M/1M): Pullback into FVG — provides the entry trigger ✓\n"
+                    "• FVG at 70% fib (OTE zone) — optimal retracement depth ✓\n\n"
+                    "Alignment state: FULL ALIGNMENT — all timeframes pointing same direction.\n"
+                    "This is the highest probability configuration in ICT.\n\n"
+                    "Entry: At the FVG touch on LTF.\n"
+                    "Stop: Below the FVG on LTF.\n"
+                    "Target: Next HTF liquidity pool (BSL above).\n\n"
+                    "Confluence: htf_bias_aligned (+2.0) + in_fvg (+1.5) + at_ote_level (+1.0) + "
+                    "structure_break (+1.0) + multi_timeframe_confluence (+1.5) = 7.0 — Good Setup.\n\n"
+                    "This is exactly how ICT is meant to work: HTF direction → MTF confirmation → LTF entry."
+                ),
+            },
+            {
+                "observations": [
+                    "FVG formed but no displacement preceded it",
+                    "no clear liquidity was swept",
+                    "HTF bias is unclear/neutral",
+                    "price is choppy with no direction",
+                ],
+                "model": "NO TRADE",
+                "reasoning": (
+                    "This is NOT a valid setup — no ICT model matches these conditions.\n\n"
+                    "Analysis of each observation:\n"
+                    "• FVG without displacement: This FVG is unreliable. Without a displacement candle, "
+                    "the gap is just noise, not institutional imbalance. (-1.5 penalty)\n"
+                    "• No liquidity swept: No fuel for a directional move. (-2.0 penalty)\n"
+                    "• HTF bias unclear: Cannot determine trade direction. (-2.0 penalty for any direction)\n"
+                    "• Choppy price action: Likely in accumulation phase or a range day\n\n"
+                    "Confluence score: Even the positive factors can't overcome "
+                    "-5.5 in penalties. This is well below the 5.0 minimum threshold.\n\n"
+                    "Action: NO TRADE. Walk away.\n\n"
+                    "The ability to say 'this is not a trade' is one of the most valuable skills in ICT. "
+                    "On days like this, the market is designed to take money from traders who force entries. "
+                    "Protect your capital and wait for conditions to improve."
+                ),
+            },
+            {
+                "observations": [
+                    "EUR/USD makes new high",
+                    "GBP/USD fails to make new high",
+                    "HTF bias is bearish",
+                    "BSL was just swept on EUR/USD",
+                ],
+                "model": "SMT Reversal with Sweep",
+                "reasoning": (
+                    "This is an SMT divergence reversal setup — one of the highest-probability signals in ICT.\n\n"
+                    "Analysis:\n"
+                    "• EUR/USD makes new high — but this is AGAINST the bearish HTF bias = suspicious\n"
+                    "• GBP/USD fails to follow — SMT DIVERGENCE confirmed ✓\n"
+                    "• The pair that DOESN'T make the new extreme (GBP/USD) reveals the true direction = DOWN\n"
+                    "• BSL swept on EUR/USD — the new high took buy-side liquidity ✓\n"
+                    "• HTF bearish bias aligns with the short direction revealed by SMT ✓\n\n"
+                    "Trade: SHORT EUR/USD\n"
+                    "Entry: Look for bearish displacement after the sweep, enter at the FVG/OB it creates\n"
+                    "Stop: Above the sweep high\n"
+                    "Target: Sell-side liquidity below\n\n"
+                    "Confluence: liquidity_swept (+2.5) + htf_bias_aligned (+2.0) + smt_divergence (+1.5) = 6.0 minimum, "
+                    "plus additional factors from the entry zone.\n\n"
+                    "SMT at a liquidity sweep in the direction of HTF bias is ICT's highest-conviction signal."
+                ),
+            },
+        ]
+
+        for scenario in scenarios:
+            obs_text = ", ".join(scenario["observations"])
+            q = f"I see these conditions: {obs_text}. What ICT model should I use?"
+            self._add(q, scenario["reasoning"], "model_identification")
+            count += 1
+
+            # Also add a shorter "is this a valid setup?" version
+            q2 = f"Is this a valid ICT setup: {obs_text}?"
+            if "NO TRADE" in scenario["model"]:
+                a2 = f"No — this is NOT a valid setup. {scenario['reasoning'].split(chr(10))[0]}"
+            else:
+                a2 = f"Yes — this matches the {scenario['model']} setup. {scenario['reasoning']}"
+            self._add(q2, a2, "setup_validation")
+            count += 1
+
+        return count
+
+    # ── 13e. Confluence Permutations ──────────────────────────────────────
+
+    def gen_confluence_permutations(self) -> int:
+        """Generate many more confluence scoring scenarios with different factor combinations."""
+        count = 0
+        rels = self._load_concept_rels()
+        weights = rels.get("confluence_weights", {})
+
+        if not weights:
+            return 0
+
+        all_factors = {}
+        for tier, factors in weights.items():
+            if tier == "thresholds":
+                continue
+            if isinstance(factors, dict):
+                for factor, weight in factors.items():
+                    all_factors[factor] = weight
+            elif isinstance(factors, list):
+                for item in factors:
+                    if isinstance(item, dict):
+                        for factor, weight in item.items():
+                            all_factors[factor] = weight
+
+        thresholds = weights.get("thresholds", {})
+        min_score = thresholds.get("minimum_for_trade", 5.0)
+        good_score = thresholds.get("good_setup", 7.0)
+        aplus_score = thresholds.get("a_plus_setup", 9.0)
+
+        positive_factors = {k: v for k, v in all_factors.items() if v > 0}
+        negative_factors = {k: v for k, v in all_factors.items() if v < 0}
+
+        pos_list = list(positive_factors.keys())
+        neg_list = list(negative_factors.keys())
+
+        # Generate diverse scenarios
+        scenario_configs = [
+            # (num_positive, num_negative, description_hint)
+            (3, 0, "moderate positive"),
+            (4, 0, "strong positive"),
+            (5, 0, "very strong positive"),
+            (6, 0, "maximum positive"),
+            (2, 1, "weak with penalty"),
+            (3, 1, "moderate with penalty"),
+            (4, 1, "strong with one penalty"),
+            (3, 2, "moderate with two penalties"),
+            (4, 2, "strong with two penalties"),
+            (2, 2, "weak with two penalties"),
+            (5, 1, "very strong with one penalty"),
+            (2, 0, "minimal positive"),
+            (3, 3, "balanced"),
+            (4, 3, "balanced-strong"),
+            (6, 2, "near-max with penalties"),
+        ]
+
+        for num_pos, num_neg, hint in scenario_configs:
+            if num_pos > len(pos_list) or num_neg > len(neg_list):
+                continue
+
+            chosen_pos = self.rng.sample(pos_list, num_pos)
+            chosen_neg = self.rng.sample(neg_list, num_neg) if num_neg > 0 else []
+            all_chosen = chosen_pos + chosen_neg
+            score = sum(all_factors[f] for f in all_chosen)
+
+            # Build the scoring breakdown
+            parts = [f"Confluence scoring analysis:\n\n"]
+            for f in chosen_pos:
+                w = all_factors[f]
+                parts.append(f"  +{w} — {self._label(f)}\n")
+            for f in chosen_neg:
+                w = all_factors[f]
+                parts.append(f"  {w} — {self._label(f)} ⚠️\n")
+
+            parts.append(f"\nTotal score: {score:.1f}\n\n")
+
+            if score >= aplus_score:
+                parts.append(
+                    f"Rating: A+ SETUP ({score:.1f} ≥ {aplus_score})\n"
+                    f"This is a highest-conviction trade. Full position size. "
+                    f"All major confluence factors are present. Execute with discipline — "
+                    f"this is the kind of setup that pays for months of patience."
+                )
+            elif score >= good_score:
+                parts.append(
+                    f"Rating: GOOD SETUP ({score:.1f} ≥ {good_score})\n"
+                    f"This is a solid trade with strong confluence. Standard position size. "
+                    f"The factors present give you a meaningful edge. "
+                    f"Execute the plan, manage risk, and let probabilities work."
+                )
+            elif score >= min_score:
+                parts.append(
+                    f"Rating: MINIMUM MET ({score:.1f} ≥ {min_score})\n"
+                    f"This trade meets the minimum threshold but isn't exceptional. "
+                    f"Consider reduced position size (50-75%). "
+                    f"{'The penalties are dragging the score down — be aware of those risk factors.' if chosen_neg else 'Add more confluences if possible before entering.'}"
+                )
+            else:
+                parts.append(
+                    f"Rating: DO NOT TRADE ({score:.1f} < {min_score})\n"
+                    f"This setup is below the minimum confluence threshold. "
+                    f"{'The penalties overwhelm the positive factors.' if chosen_neg else 'Not enough positive confluence factors.'} "
+                    f"Wait for more factors to align, or look for a different setup entirely."
+                )
+
+            # Create the question
+            factor_labels = [self._label(f) for f in all_chosen[:3]]
+            q = f"Score my setup: I have {', '.join(factor_labels)}"
+            if len(all_chosen) > 3:
+                q += f" and {len(all_chosen) - 3} more factors"
+            q += ". Should I trade?"
+
+            self._add(q, "".join(parts), "confluence_permutation")
+            count += 1
+
+        return count
+
+    # ── 13f. Concept Identification on Charts ─────────────────────────────
+
+    def gen_chart_identification(self) -> int:
+        """Generate 'How do I identify X on a chart?' practical questions."""
+        count = 0
+
+        identifications = [
+            (
+                "Fair Value Gap",
+                "How to identify a Fair Value Gap (FVG) on a chart:\n\n"
+                "1. Look at any three consecutive candles\n"
+                "2. Check if Candle 1's HIGH is BELOW Candle 3's LOW (bullish FVG) "
+                "or Candle 1's LOW is ABOVE Candle 3's HIGH (bearish FVG)\n"
+                "3. The gap between these wicks IS the FVG\n"
+                "4. Mark it as a zone on your chart — this is your potential entry area\n\n"
+                "Critical details:\n"
+                "• Measure from WICKS, not bodies\n"
+                "• The FVG must be created by displacement (large-bodied candle in the middle)\n"
+                "• Draw a rectangle from the Candle 1 wick to the Candle 3 wick\n"
+                "• Mark the 50% level of the FVG — this is where mitigation occurs\n"
+                "• An FVG is valid only while unmitigated (price hasn't returned to its 50%)\n\n"
+                "Common mistake: identifying tiny gaps without displacement as FVGs. "
+                "If the middle candle isn't a displacement candle, it's just a gap that will fill through you.",
+            ),
+            (
+                "Order Block",
+                "How to identify an Order Block (OB) on a chart:\n\n"
+                "1. First, identify a displacement move (large candle, 2x+ average range)\n"
+                "2. Look at the candle IMMEDIATELY before the displacement\n"
+                "3. For bullish OB: it's the last RED/DOWN candle before the bullish displacement\n"
+                "4. For bearish OB: it's the last GREEN/UP candle before the bearish displacement\n\n"
+                "Validation checklist:\n"
+                "• Was liquidity swept before the OB formed? (required)\n"
+                "• Did displacement follow the OB candle? (required)\n"
+                "• Is the OB in the direction of HTF bias? (required)\n"
+                "• Is the OB unmitigated? (price hasn't returned to tap it yet)\n\n"
+                "Mark the OB on your chart as a rectangle covering the full candle body (open to close). "
+                "The 50% (midpoint) of the OB body is your entry level. "
+                "Stop goes below the OB low (bullish) or above the OB high (bearish).\n\n"
+                "NOT an Order Block: any random candle before a move. The sweep + displacement combo is essential.",
+            ),
+            (
+                "Liquidity Sweep",
+                "How to identify a liquidity sweep on a chart:\n\n"
+                "1. Identify a liquidity pool — equal highs, equal lows, or a clean swing point\n"
+                "   (look for 2+ touches at approximately the same price level)\n"
+                "2. Watch for price to reach that level and PUSH THROUGH it\n"
+                "3. The sweep typically extends 20-30 pips beyond the level\n"
+                "4. Look for the reversal — price should change direction relatively quickly\n\n"
+                "Sweep types:\n"
+                "• Wick sweep: long wick/shadow through the level, close back inside = classic\n"
+                "• Body sweep: full candle closes through, but next 1-2 candles reverse\n"
+                "• Both are valid, but wick sweeps are more textbook\n\n"
+                "Confirmation: After the sweep, look for displacement in the opposite direction. "
+                "This displacement confirms that smart money has filled their orders using the swept liquidity.\n\n"
+                "Key distinction: A sweep that pushes through AND continues is a legitimate breakout, not a sweep. "
+                "Sweeps reverse. Breakouts continue. Watch the next 2-3 candles to confirm.",
+            ),
+            (
+                "Change of Character (CHoCH)",
+                "How to identify a Change of Character (CHoCH) on a chart:\n\n"
+                "1. Identify the prevailing trend direction (swing highs/lows making HH/HL or LH/LL)\n"
+                "2. Watch for the FIRST break of structure AGAINST the trend\n"
+                "   • In an uptrend: the first break below a swing low = bearish CHoCH\n"
+                "   • In a downtrend: the first break above a swing high = bullish CHoCH\n"
+                "3. The break must be a body close, not just a wick\n\n"
+                "What CHoCH means:\n"
+                "• It's the FIRST warning sign of a potential reversal\n"
+                "• It is NOT an entry signal by itself\n"
+                "• Think of it as a 'heads up' — be prepared for a direction change\n\n"
+                "What to do after CHoCH:\n"
+                "• Look for a liquidity sweep in the original trend direction\n"
+                "• Wait for displacement confirming the new direction\n"
+                "• Only THEN look for entry\n\n"
+                "Sequence: CHoCH (warning) → liquidity sweep → displacement → MSS (confirmation) → entry. "
+                "Entering at CHoCH alone is premature and a common mistake.",
+            ),
+            (
+                "SMT Divergence",
+                "How to identify SMT (Smart Money Technique) divergence on a chart:\n\n"
+                "1. Open two correlated pairs side by side (e.g., EUR/USD and GBP/USD)\n"
+                "2. Identify a swing high or swing low on one pair\n"
+                "3. Check if the other pair makes the SAME type of swing at the same time\n\n"
+                "Divergence scenarios:\n"
+                "• EUR/USD makes a NEW HIGH but GBP/USD does NOT → EUR/USD high is likely fake\n"
+                "• EUR/USD makes a NEW LOW but GBP/USD does NOT → EUR/USD low is likely fake\n"
+                "• The pair that FAILS to confirm reveals the true direction\n\n"
+                "Key pairs for SMT:\n"
+                "• EUR/USD ↔ GBP/USD (positive correlation)\n"
+                "• ES (S&P 500) ↔ NQ (Nasdaq) (positive correlation)\n"
+                "• DXY ↔ EUR/USD (inverse correlation — divergence means SAME direction)\n\n"
+                "When to use SMT: At key liquidity levels. If price sweeps BSL on EUR/USD but GBP/USD "
+                "doesn't make a corresponding new high, the EUR/USD sweep is almost certainly a fake-out. "
+                "This is one of the highest-probability reversal signals in all of ICT.",
+            ),
+            (
+                "Displacement Candle",
+                "How to identify a displacement candle on a chart:\n\n"
+                "1. Look for a candle with a body that is 2x or more the average candle range\n"
+                "2. The body should be LARGE relative to the wicks (mostly body, small wicks)\n"
+                "3. It should move decisively in one direction\n"
+                "4. It typically creates a visible gap (FVG) with the surrounding candles\n\n"
+                "Characteristics of valid displacement:\n"
+                "• Large body relative to recent candles (visually stands out)\n"
+                "• Closes near its extreme (not much wick in the direction of the move)\n"
+                "• Often follows a liquidity sweep\n"
+                "• Creates at least one FVG\n\n"
+                "What it looks like vs. what it ISN'T:\n"
+                "• Displacement: big green candle after SSL sweep, small wicks, closes near high ✓\n"
+                "• NOT displacement: big wick candle with small body (indecision, not conviction) ✗\n"
+                "• NOT displacement: normal-sized candle in the direction of the trend ✗\n\n"
+                "Displacement is CONVICTION. If the candle doesn't make you go 'wow, that's a big move,' "
+                "it's probably not displacement.",
+            ),
+            (
+                "Dealing Range",
+                "How to identify the dealing range on a chart:\n\n"
+                "1. Find the most recent significant swing high and swing low on your timeframe\n"
+                "2. The range between these two points is your dealing range\n"
+                "3. Mark the 50% level (equilibrium) — this divides premium from discount\n"
+                "4. Optionally mark the OTE zone (62-79% retracement from the trend direction)\n\n"
+                "Using the dealing range:\n"
+                "• Above 50% = PREMIUM zone — look to sell\n"
+                "• Below 50% = DISCOUNT zone — look to buy\n"
+                "• 62-79% = OTE (Optimal Trade Entry) — the sweet spot\n\n"
+                "Which swing points to use:\n"
+                "• HTF dealing range: Daily/4H swing high to swing low — your directional bias\n"
+                "• MTF dealing range: 1H/15M range — your entry zone\n"
+                "• LTF dealing range: 5M/1M range — your precise entry and stop\n\n"
+                "The Market Maker Model operates within the dealing range. "
+                "Smart money accumulates in discount, manipulates at extremes, and distributes in premium "
+                "(or vice versa for bearish models).",
+            ),
+            (
+                "Equal Highs/Equal Lows",
+                "How to identify equal highs and equal lows on a chart:\n\n"
+                "1. Look for 2 or more swing highs at approximately the same price level (equal highs)\n"
+                "2. Look for 2 or more swing lows at approximately the same price level (equal lows)\n"
+                "3. 'Approximately' means within a few pips — functional similarity, not exact match\n"
+                "4. 3+ touches at the same level = 'licking chops' (very strong liquidity pool)\n\n"
+                "What equal highs/lows represent in ICT:\n"
+                "• NOT support/resistance (traditional view)\n"
+                "• They ARE liquidity pools — clusters of resting orders\n"
+                "• Equal highs = buy-side liquidity (stop losses from shorts + breakout buys)\n"
+                "• Equal lows = sell-side liquidity (stop losses from longs + breakout sells)\n\n"
+                "The more times price 'bounces' off a level, the MORE liquidity builds there, "
+                "and the MORE likely it will eventually be swept. "
+                "When a retail trader sees 'triple bottom support,' an ICT trader sees "
+                "'a massive pool of sell-side liquidity that smart money will eventually harvest.'\n\n"
+                "This fundamental reframe is one of the most important concepts in ICT.",
+            ),
+        ]
+
+        for concept, explanation in identifications:
+            self._add(
+                f"How do I identify {concept} on a chart?",
+                explanation,
+                "chart_identification",
             )
             count += 1
 
